@@ -2,10 +2,12 @@
 
 requires cmake and a C++ compiler.
 
-mkdir build
-cd build
-cmake ..
-make
+```
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+```
 
 # Run
 
