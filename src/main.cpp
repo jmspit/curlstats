@@ -331,7 +331,7 @@ Filter filter;
 bool parseArgs( int argc, char* argv[] ) {
   for(;;)
   {
-    switch( getopt(argc, argv, "d:tb:T:") ) // note the colon (:) to indicate that 'b' has a parameter and is not a switch
+    switch( getopt(argc, argv, "d:tb:T:h") ) // note the colon (:) to indicate that 'b' has a parameter and is not a switch
     {
       case 'b':
         options.time_bucket = stod( optarg );

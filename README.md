@@ -9,16 +9,17 @@ make
 
 curlstats reads (only) from standard in.
 
+$ ./curlstats -h
 usage:
-curlstats [flags]
   -b seconds
-     (real) slow call time distribution bucket (default 0.1s)
-  -d slow
-     (real) specify a slow threshold filter in seconds (default 1.0s)
+     (real) 24h time distribution bucket
+  -d minimum
+     (real) specify a slow threshold filter in seconds
   -t
-     include a full list of slow probes (default false)
+     include a full list of slow probes
   -T minutes
-     (uint) 24 hour time bucket ( 0 < x <= 60 ) (default 30 minutes)
+     (uint) 24 hour time bucket ( 0 < x <= 60 )
+
 
 ## Examples
 
