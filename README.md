@@ -1,5 +1,7 @@
 # Build
 
+requires cmake and a C++ compiler.
+
 mkdir build
 cd build
 cmake ..
