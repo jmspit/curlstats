@@ -479,6 +479,9 @@ string curlError2String( uint16_t code ) {
     case 0:
       ss << "Ok ";
       break;
+    case 28:
+      ss << "Operation timeout ";
+      break;
     case 35:
       ss << "SSL connect error ";
       break;
@@ -510,6 +513,7 @@ void summary() {
   cout << waitClass2String( wcReceiveEnd, true )  << endl;
 
   heading( "Options in effect" );
+  cout << "Slowness threshold                : " << FIXED3W7 << filter.min_duration << " seconds" << endl;
   cout << "Response time distribution bucket : " << FIXED3W7 << options.time_bucket << " seconds" << endl;
   cout << "repeating 24h bucket              : " << FIXED3W7 << options.day_bucket << " minutes" << endl;
   cout << "Show trail of slow probes         : " << FIXED3W7 << options.timing_detail << endl;
@@ -659,6 +663,8 @@ void summary() {
 
 int main( int argc, char* argv[] ) {
   if ( parseArgs( argc, argv ) ) {
+    // to prevent timezone translations
+    setenv( "TZ", "UTC", 1 );
     read( cin );
     summary();
     return 0;
