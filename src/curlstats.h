@@ -536,7 +536,7 @@ string time_t2String( time_t t ) {
 /**
  * Write a heading.
  */
-void heading( const string &h, char c = '=', int width = 175 ) {
+void heading( const string &h, char c = '=', int width = 176 ) {
   cout << endl << string( width, c ) << endl;
   cout << h << endl;
   cout << string( width, c ) << endl;
