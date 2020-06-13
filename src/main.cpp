@@ -105,6 +105,7 @@ list<CURL> slow_repsonse_list;
  * Read and parse data.
  */
 void read( std::istream& in ) {
+  bool has_comment_heading = false;
   string line;
   getline( in, line );
   while ( in.good()  ) {
@@ -176,6 +177,10 @@ void read( std::istream& in ) {
         cerr << "error on line " << globalstats.items << endl;
       }
     } else {
+      if ( !has_comment_heading ) {
+        heading( "Comments from input" );
+        has_comment_heading = true;
+      }
       if ( line.length() > 1 && line[1] != 'Y' ) cout << line << endl;
     }
     getline( in, line );
