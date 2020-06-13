@@ -506,7 +506,7 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         cout << "  -t" << endl;
         cout << "     include a full list of slow probes" << endl;
         cout << "  -T minutes" << endl;
-        cout << "     (uint) 24 hour time bucket ( 0 < x <= 60 )" << endl;
+        cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 )" << endl;
         return false;
       case -1:
         break;
