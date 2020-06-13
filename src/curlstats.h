@@ -223,6 +223,15 @@ struct WaitClassStats {
     return static_cast<int>( floor( appconnect.min / getNetworkRoundtrip() ) );
   }
 
+  double getOptimalResponse() const {
+    return namelookup.min +
+           connect.min +
+           appconnect.min +
+           pretransfer.min +
+           starttransfer.min +
+           endtransfer.min;
+  };
+
 };
 
 /**

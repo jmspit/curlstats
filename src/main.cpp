@@ -351,10 +351,11 @@ void summary() {
   cout << "last  data point     : " << time_t2String( globalstats.last_time )  << endl;
   cout << "#probes              : " << globalstats.items << endl;
   cout << "#slow probes         : " << globalstats.items_slow << endl;
+  cout << "%slow probes         : " << FIXED3 << (double)globalstats.items_slow/(double)globalstats.items*100.0 << endl;
   double global_avg_response = globalstats.total_time / globalstats.items;
   cout << "average response time: " << FIXED3 << global_avg_response << "s" << endl;
+  cout << "optimal response time: " << FIXED3 << globalstats.wait_class_stats.getOptimalResponse() << "s" << endl;
   cout << "estimate network RTT : " << FIXED3 << globalstats.wait_class_stats.getNetworkRoundtrip()*1000.0 << "ms" << endl;
-  cout << "estimate #TLS rtrips : " << globalstats.wait_class_stats.getTLSRoundTrips() << endl;
   cout << setw(4) << "class";
   cout << setw(8) << "%slow";
   cout << setw(8) << "min";
