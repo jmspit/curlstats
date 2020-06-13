@@ -507,6 +507,13 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         cout << "     include a full list of slow probes" << endl;
         cout << "  -T minutes" << endl;
         cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 )" << endl;
+        cout << endl;
+        cout << waitClass2String( wcDNS, true )  << endl;
+        cout << waitClass2String( wcTCPHandshake, true )  << endl;
+        cout << waitClass2String( wcSSLHandshake, true )  << endl;
+        cout << waitClass2String( wcSendStart, true )  << endl;
+        cout << waitClass2String( wcWaitEnd, true )  << endl;
+        cout << waitClass2String( wcReceiveEnd, true )  << endl;
         return false;
       case -1:
         break;

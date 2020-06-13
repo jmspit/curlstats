@@ -191,13 +191,6 @@ void read( std::istream& in ) {
  * Write summary.
  */
 void summary() {
-  heading( "Wait class acronyms" );
-  cout << waitClass2String( wcDNS, true )  << endl;
-  cout << waitClass2String( wcTCPHandshake, true )  << endl;
-  cout << waitClass2String( wcSSLHandshake, true )  << endl;
-  cout << waitClass2String( wcSendStart, true )  << endl;
-  cout << waitClass2String( wcWaitEnd, true )  << endl;
-  cout << waitClass2String( wcReceiveEnd, true )  << endl;
 
   heading( "Options in effect" );
   cout << "Slowness threshold                : " << FIXED3W7 << options.min_duration << " seconds" << endl;
