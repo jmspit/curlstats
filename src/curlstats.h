@@ -216,7 +216,7 @@ struct WaitClassStats {
   }
 
   double getNetworkRoundtrip() const {
-    return connect.min / 1.5;
+    return connect.getAverage() / 1.5;
   }
 
   int getTLSRoundTrips() const {
