@@ -12,376 +12,98 @@
 #include <string.h>
 #include <cmath>
 
+#include "curlstats.h"
+
 using namespace std;
 
-#define FIXED3 fixed << setfill(' ') << setprecision(3)
-#define FIXED3W7 fixed << setfill(' ') << setprecision(3) << setw(7)
-#define FIXEDINT fixed << setfill(' ') << setprecision(0) << setw(9)
-#define FIXEDPCT fixed << setfill(' ') << setprecision(2) << setw(6)
-
-#define DEFAULT_DAY_BUCKET 30
-#define DEFAULT_MIN_DURATION 1.0
-#define DEFAULT_TIME_BUCKET 1.0
-#define DEFAULT_TIMING_DETAIL false
-
-struct Options {
-  Options() : timing_detail(DEFAULT_TIMING_DETAIL),
-              time_bucket(DEFAULT_TIME_BUCKET),
-              day_bucket(DEFAULT_DAY_BUCKET) {};
-  bool timing_detail;
-  double time_bucket;
-  int day_bucket;
-};
+/**
+ * Parsed command line options.
+ */
 Options options;
 
-struct QtyStats {
-  QtyStats() :
-    min(0.0),
-    max(0.0),
-    total(0.0),
-    items(0) {};
-
-  double min;
-  double max;
-  double total;
-  size_t items;
-
-  void addValue( double d ) {
-    if ( min == 0.0 || d < min ) min = d;
-    if ( max == 0.0 || d > max ) max = d;
-    total += d;
-    items++;
-  }
-
-  string asString() {
-    stringstream ss;
-    ss << FIXED3W7 << min << " ";
-    ss << FIXED3W7 << max << " ";
-    ss << FIXED3W7 << total / (double)items << " ";
-    return ss.str();
-  }
-};
-
-enum WaitClass {
-  wcDNS,
-  wcTCPHandshake,
-  wcSSLHandshake,
-  wcSendStart,
-  wcWaitEnd,
-  wcReceiveEnd
-};
-
-struct Order {
-  WaitClass wc;
-  double value;
-};
-
-bool operator<( const Order& o1, const Order& o2 ) {
-  return o1.value < o2.value;
-}
-
-struct WaitClassStats {
-  QtyStats namelookup;
-  QtyStats connect;
-  QtyStats appconnect;
-  QtyStats pretransfer;
-  QtyStats starttransfer;
-  QtyStats endtransfer;
-  size_t slow = 0;
-
-  void addValue( WaitClass wc, double value ) {
-    switch ( wc ) {
-      case wcDNS:
-        namelookup.addValue( value );
-        break;
-      case wcTCPHandshake:
-        connect.addValue( value );
-        break;
-      case wcSSLHandshake:
-        appconnect.addValue( value );
-        break;
-      case wcSendStart:
-        pretransfer.addValue( value );
-        break;
-      case wcWaitEnd:
-        starttransfer.addValue( value );
-        break;
-      case wcReceiveEnd:
-        endtransfer.addValue( value );
-        break;
-    }
-  }
-
-  void bumpSlow() { slow++; };
-
-  double avgResponse() const {
-    return
-      ( namelookup.total +
-        connect.total +
-        appconnect.total +
-        pretransfer.total +
-        starttransfer.total +
-        endtransfer.total ) / (double)slow;
-  }
-
-  WaitClass blame() const {
-    set<Order> ordered;
-    ordered.insert( { wcDNS , namelookup.total } );
-    ordered.insert( { wcTCPHandshake , connect.total } );
-    ordered.insert( { wcSSLHandshake , appconnect.total } );
-    ordered.insert( { wcSendStart , pretransfer.total } );
-    ordered.insert( { wcWaitEnd , starttransfer.total } );
-    ordered.insert( { wcReceiveEnd , endtransfer.total } );
-    return (*ordered.rbegin()).wc;
-  }
-
-};
-
-struct GlobalStats {
-  GlobalStats() :
-    items(0),
-    items_slow(0),
-    total_time(0),
-    total_slow_time(0),
-    first_time(0),
-    last_time(0) {};
-
-  WaitClassStats wait_class_stats;
-  size_t items;
-  size_t items_slow;
-  double total_time;
-  double total_slow_time;
-
-  time_t first_time;
-  time_t last_time;
-};
+/**
+ * Global (all probes) statistics.
+ */
 GlobalStats globalstats;
 
-vector<string> split( const string& src, char delimiter = ';' ) {
-  vector<string> result;
-  istringstream is(src);
-  string s;
-  while ( getline( is, s, delimiter ) ) {
-    result.push_back( s );
-  }
-  return result;
-}
-
-
-
-struct TimeKey {
-  TimeKey() : tm_hour(0),tm_min(0) {};
-  TimeKey( int hour, int min ) : tm_hour(hour),tm_min(min) {};
-  int tm_hour;
-  int tm_min;
-};
-
-bool operator==( const TimeKey& k1, const TimeKey &k2 ) {
-  return k1.tm_hour == k2.tm_hour && k1.tm_min == k2.tm_min;
-}
-
-bool operator<( const TimeKey& k1, const TimeKey &k2 ) {
-  return k1.tm_hour < k2.tm_hour || ( k1.tm_hour == k2.tm_hour && k1.tm_min < k2.tm_min );
-}
-
-TimeKey bucket( const TimeKey &k ) {
-  return TimeKey( k.tm_hour, k.tm_min / options.day_bucket * options.day_bucket );
-}
-
-double bucket( double v ) {
-  return ceil( v / options.time_bucket ) * options.time_bucket;
-}
-
+/**
+ * Map slow probe statistics to a WaitClass.
+ */
 map<WaitClass,QtyStats> slow_map;
-map<int,size_t> slow_dow_map;
+
+/**
+ * Map slow probe statistics to day-of-week.
+ */
+map<int,WaitClassStats> slow_dow_map;
+
+/**
+ * Map total probe statistics to day-of-week.
+ */
 map<int,size_t> total_dow_map;
+
+/**
+ * Map slow probe statistics to time-of-day.
+ */
 map<TimeKey,WaitClassStats> slow_day_map;
+
+/**
+ * Map total probe statistics to time-of-day.
+ */
 map<TimeKey,size_t> total_day_map;
+
+/**
+ * Map probe stats to date (year,month,day)
+ */
+map<DateKey,WaitClassStats> total_date_map;
+
+/**
+ * Map slow probe stats to date (year,month,day)
+ */
+map<DateKey,WaitClassStats> slow_date_map;
+
+/**
+ * Map slow probes to duration buckets.
+ */
 map<double,size_t> slow_buckets;
+
+/**
+ * Map all probes to duration buckets.
+ */
 map<double,size_t> all_buckets;
 
-string waitClass2String( WaitClass wc, bool describe = false ) {
-  if ( describe ) {
-    switch ( wc ) {
-      case wcDNS :          return waitClass2String(wc) + " = DNS name resolution";
-      case wcTCPHandshake : return waitClass2String(wc) + " = TCP handshake";
-      case wcSSLHandshake : return waitClass2String(wc) + " = TLS ('SSL') handshake";
-      case wcSendStart :    return waitClass2String(wc) + " = Request send lead time";
-      case wcWaitEnd :      return waitClass2String(wc) + " = Waiting for response";
-      case wcReceiveEnd :   return waitClass2String(wc) + " = Waiting for response more data";
-      default:              return "ERR";
-    };
-  } else {
-    switch ( wc ) {
-      case wcDNS :          return "DNS";
-      case wcTCPHandshake : return "TCP";
-      case wcSSLHandshake : return "TLS";
-      case wcSendStart :    return "REQ";
-      case wcWaitEnd :      return "RSP";
-      case wcReceiveEnd :   return "DAT";
-      default:              return "ERR";
-    };
-  }
-}
-
-
-struct CURL {
-  struct tm datetime;
-  uint16_t  curl_error;
-  uint16_t  http_code;
-  double    total_time;
-  double    time_namelookup;
-  double    time_connect;
-  double    time_appconnect;
-  double    time_pretransfer;
-  double    time_starttransfer;
-
-  double getWaitClassDuration( WaitClass wc ) {
-    switch ( wc ) {
-      case wcDNS :
-        return time_namelookup;
-      case wcTCPHandshake :
-        return (time_connect-time_namelookup);
-      case wcSSLHandshake :
-        return (time_appconnect-time_connect);
-      case wcSendStart :
-        return (time_pretransfer-time_appconnect);
-      case wcWaitEnd :
-        return (time_starttransfer-time_pretransfer);
-      case wcReceiveEnd :
-        return (total_time-time_starttransfer);
-    }
-    return 0.0;
-  };
-
-  double getWaitClassPct( WaitClass wc ) {
-    switch ( wc ) {
-      case wcDNS :
-        return time_namelookup/total_time*100.0;
-      case wcTCPHandshake :
-        return (time_connect-time_namelookup)/total_time*100.0;
-      case wcSSLHandshake :
-        return (time_appconnect-time_connect)/total_time*100.0;
-      case wcSendStart :
-        return (time_pretransfer-time_appconnect)/total_time*100.0;
-      case wcWaitEnd :
-        return (time_starttransfer-time_pretransfer)/total_time*100.0;
-      case wcReceiveEnd :
-        return (total_time-time_starttransfer)/total_time*100.0;
-    }
-    return 0.0;
-  };
-
-
-  WaitClass getDominantWaitClass() {
-    set<Order> ordered;
-    ordered.insert( { wcDNS , getWaitClassPct( wcDNS ) } );
-    ordered.insert( { wcTCPHandshake , getWaitClassPct( wcTCPHandshake ) } );
-    ordered.insert( { wcSSLHandshake , getWaitClassPct( wcSSLHandshake ) } );
-    ordered.insert( { wcSendStart , getWaitClassPct( wcSendStart ) } );
-    ordered.insert( { wcWaitEnd , getWaitClassPct( wcWaitEnd ) } );
-    ordered.insert( { wcReceiveEnd , getWaitClassPct( wcReceiveEnd ) } );
-    return (*ordered.rbegin()).wc;
-  };
-
-  string asString() {
-    stringstream ss;
-    ss << put_time( &datetime, "%F %T") << " ";
-    ss << "curl=" << curl_error << " ";
-    if ( curl_error == 0 ) {
-      ss << "http=" << http_code << " ";
-      ss << "roundtrip : " << FIXED3 << total_time << "s blame " << waitClass2String( getDominantWaitClass() ) << " ";
-      ss << fixed << FIXEDPCT << getWaitClassPct( getDominantWaitClass() ) << "% | ";
-      ss << waitClass2String( wcDNS ) << "=" << FIXED3 << time_namelookup << "s, ";
-      ss << waitClass2String( wcTCPHandshake ) << "=" << FIXED3 << time_connect - time_namelookup << "s, ";
-      ss << waitClass2String( wcSSLHandshake ) << "=" << FIXED3 << time_appconnect - time_connect << "s, ";
-      ss << waitClass2String( wcSendStart ) << "=" << FIXED3 << time_pretransfer - time_appconnect << "s, ";
-      ss << waitClass2String( wcWaitEnd )  << "=" << FIXED3 << time_starttransfer - time_pretransfer << "s, ";
-      ss << waitClass2String( wcReceiveEnd ) << "=" << FIXED3 << total_time - time_starttransfer << "s";
-    }
-    return ss.str();
-  };
-
-  bool parse( const string &s ) {
-    vector<string> tokens = split( s, ';' );
-    if ( tokens.size() == 12 ) {
-      string stm = tokens[0] + " +00:00";
-      memset( &datetime, 0, sizeof(datetime) );
-      strptime( stm.c_str(), "%Y-%m-%d %H:%M:%S %z", &datetime );
-
-      curl_error         = stoi(tokens[1]);
-      http_code          = stoi(tokens[3]);
-      total_time         = stod(tokens[5]);
-      time_namelookup    = stod(tokens[6]);
-      time_connect       = stod(tokens[7]);
-      time_appconnect    = stod(tokens[8]);
-      time_pretransfer   = stod(tokens[9]);
-      time_starttransfer = stod(tokens[11]);
-    } else return false;
-    return true;
-  }
-};
-
-struct Filter {
-  Filter() : min_duration(DEFAULT_MIN_DURATION) {}
-  double min_duration;
-};
-Filter filter;
-
-bool parseArgs( int argc, char* argv[] ) {
-  for(;;)
-  {
-    switch( getopt(argc, argv, "d:tb:T:h") ) // note the colon (:) to indicate that 'b' has a parameter and is not a switch
-    {
-      case 'b':
-        options.time_bucket = stod( optarg );
-        continue;
-      case 'd':
-        filter.min_duration = stod( optarg );
-        if ( filter.min_duration == 0 ) filter.min_duration = DEFAULT_MIN_DURATION;
-        continue;
-      case 't':
-        options.timing_detail = true;
-        continue;
-      case 'T':
-        options.day_bucket = stoi( optarg );
-        if ( options.day_bucket <= 0 ) options.day_bucket = DEFAULT_DAY_BUCKET;
-        if ( options.day_bucket > 60 ) options.day_bucket = DEFAULT_DAY_BUCKET;
-        continue;
-      case '?':
-      case 'h':
-      default :
-        cout << "usage: " << endl;
-        cout << "  -b seconds" << endl;
-        cout << "     (real) 24h time distribution bucket" << endl;
-        cout << "  -d minimum" << endl;
-        cout << "     (real) specify a slow threshold filter in seconds" << endl;
-        cout << "  -t" << endl;
-        cout << "     include a full list of slow probes" << endl;
-        cout << "  -T minutes" << endl;
-        cout << "     (uint) 24 hour time bucket ( 0 < x <= 60 )" << endl;
-        return false;
-      case -1:
-        break;
-    }
-    break;
-  }
-  return true;
-}
-
-bool isCommment( const string& s ) {
-  return s.length() == 0 || s[0] == '#';
-}
-
-
+/**
+ * Map probe count to curl error code
+ */
 map<uint16_t,size_t> curl_error_map;
+
+/**
+ * Map probe count to http error code
+ */
 map<uint16_t,size_t> http_code_map;
+
+/**
+ * Map slow probe count to WaitClass
+ */
 map<WaitClass,size_t> wait_class_map;
 
+/**
+ * All probes with curl errors
+ */
 list<CURL> curl_error_list;
+
+/**
+ * All probes with http errors
+ */
 list<CURL> http_error_list;
+
+/**
+ * All slow probes
+ */
 list<CURL> slow_repsonse_list;
 
+/**
+ * Read and parse data.
+ */
 void read( std::istream& in ) {
   string line;
   getline( in, line );
@@ -394,36 +116,58 @@ void read( std::istream& in ) {
           http_code_map[curl.http_code]++;
           if ( curl.http_code >= 400 ) http_error_list.push_back( curl );
           TimeKey tkey = TimeKey( curl.datetime.tm_hour, curl.datetime.tm_min );
-          if ( curl.total_time >= filter.min_duration ) {
+          DateKey dkey = DateKey( curl.datetime.tm_year, curl.datetime.tm_mon, curl.datetime.tm_mday );
+          if ( curl.total_time >= options.min_duration ) {
             slow_map[curl.getDominantWaitClass()].addValue( curl.getWaitClassDuration( curl.getDominantWaitClass() ) );
             wait_class_map[curl.getDominantWaitClass()]++;
             if ( options.timing_detail ) slow_repsonse_list.push_back( curl );
             globalstats.items_slow++;
             globalstats.total_slow_time += curl.total_time;
-            slow_dow_map[curl.datetime.tm_wday]++;
-            slow_day_map[bucket(tkey)].addValue( wcDNS, curl.time_namelookup );
-            slow_day_map[bucket(tkey)].addValue( wcTCPHandshake, curl.time_connect - curl.time_namelookup );
-            slow_day_map[bucket(tkey)].addValue( wcSSLHandshake, curl.time_appconnect - curl.time_connect );
-            slow_day_map[bucket(tkey)].addValue( wcSendStart, curl.time_pretransfer - curl.time_appconnect );
-            slow_day_map[bucket(tkey)].addValue( wcWaitEnd, curl.time_starttransfer - curl.time_pretransfer );
-            slow_day_map[bucket(tkey)].addValue( wcReceiveEnd, curl.total_time - curl.time_starttransfer );
-            slow_day_map[bucket(tkey)].bumpSlow();
-            slow_buckets[ bucket( curl.total_time ) ]++;
+            slow_dow_map[curl.datetime.tm_wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+            slow_dow_map[curl.datetime.tm_wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+            slow_dow_map[curl.datetime.tm_wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+            slow_dow_map[curl.datetime.tm_wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+            slow_dow_map[curl.datetime.tm_wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+            slow_dow_map[curl.datetime.tm_wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+
+            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+
+            slow_date_map[dkey].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+            slow_date_map[dkey].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+            slow_date_map[dkey].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+            slow_date_map[dkey].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+            slow_date_map[dkey].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+            slow_date_map[dkey].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+
+            slow_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
           }
           globalstats.total_time += curl.total_time;
-          globalstats.wait_class_stats.namelookup.addValue( curl.time_namelookup );
-          globalstats.wait_class_stats.connect.addValue( curl.time_connect - curl.time_namelookup );
-          globalstats.wait_class_stats.appconnect.addValue( curl.time_appconnect - curl.time_connect );
-          globalstats.wait_class_stats.pretransfer.addValue( curl.time_pretransfer - curl.time_appconnect );
-          globalstats.wait_class_stats.starttransfer.addValue( curl.time_starttransfer - curl.time_pretransfer );
-          globalstats.wait_class_stats.endtransfer.addValue( curl.total_time - curl.time_starttransfer );
+          globalstats.wait_class_stats.namelookup.addValue( curl.getWaitClassDuration( wcDNS ) );
+          globalstats.wait_class_stats.connect.addValue( curl.getWaitClassDuration( wcTCPHandshake ) );
+          globalstats.wait_class_stats.appconnect.addValue( curl.getWaitClassDuration( wcSSLHandshake ) );
+          globalstats.wait_class_stats.pretransfer.addValue( curl.getWaitClassDuration( wcSendStart ) );
+          globalstats.wait_class_stats.starttransfer.addValue( curl.getWaitClassDuration( wcWaitEnd ) );
+          globalstats.wait_class_stats.endtransfer.addValue( curl.getWaitClassDuration( wcReceiveEnd ) );
+
+          total_date_map[dkey].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+          total_date_map[dkey].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+          total_date_map[dkey].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+          total_date_map[dkey].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+          total_date_map[dkey].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+          total_date_map[dkey].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+
           if ( globalstats.first_time == 0 || timelocal(&curl.datetime ) < globalstats.first_time )
             globalstats.first_time = timelocal(&curl.datetime );
           if ( globalstats.last_time == 0 || timelocal(&curl.datetime ) > globalstats.last_time )
             globalstats.last_time = timelocal(&curl.datetime );
-          all_buckets[ bucket( curl.total_time ) ]++;
+          all_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
           globalstats.items++;
-          total_day_map[bucket(tkey)]++;
+          total_day_map[bucket(tkey,options.day_bucket)]++;
           total_dow_map[curl.datetime.tm_wday]++;
         } else {
           curl_error_list.push_back( curl );
@@ -438,71 +182,9 @@ void read( std::istream& in ) {
   }
 }
 
-string time_t2String( time_t t ) {
-  tm tm = *std::localtime(&t);
-  std::stringstream ss;
-  ss << put_time( &tm, "%F %T");
-  return ss.str();
-}
-
-void heading( const string &h ) {
-  cout << endl << h << endl;
-  cout << string( 170, '-' ) << endl;
-}
-
-string HTTPError2String( uint16_t code ) {
-  stringstream ss;
-  switch ( code ) {
-    case 200 :
-      ss << "Ok ";
-      break;
-    case 302:
-      ss << "Found / moved temporarily ";
-      break;
-    case 404:
-      ss << "Not found ";
-      break;
-    case 503:
-      ss << "Service unavailable ";
-      break;
-    case 504:
-      ss << "Gateway timeout ";
-      break;
-  }
-  ss << "(" << code << ")";
-  return ss.str();
-};
-
-string curlError2String( uint16_t code ) {
-  stringstream ss;
-  switch ( code ) {
-    case 0:
-      ss << "Ok ";
-      break;
-    case 28:
-      ss << "Operation timeout ";
-      break;
-    case 35:
-      ss << "SSL connect error ";
-      break;
-  }
-  ss << "(" << code << ")";
-  return ss.str();
-}
-
-string dowStr( int dow ) {
-  switch( dow ) {
-    case 0 : return "Sunday";
-    case 1 : return "Monday";
-    case 2 : return "Tuesday";
-    case 3 : return "Wednesday";
-    case 4 : return "Thursday";
-    case 5 : return "Friday";
-    case 6 : return "Saturday";
-    default : return "ErrorDay";
-  }
-};
-
+/**
+ * Write summary.
+ */
 void summary() {
   heading( "Wait class acronyms" );
   cout << waitClass2String( wcDNS, true )  << endl;
@@ -513,7 +195,7 @@ void summary() {
   cout << waitClass2String( wcReceiveEnd, true )  << endl;
 
   heading( "Options in effect" );
-  cout << "Slowness threshold                : " << FIXED3W7 << filter.min_duration << " seconds" << endl;
+  cout << "Slowness threshold                : " << FIXED3W7 << options.min_duration << " seconds" << endl;
   cout << "Response time distribution bucket : " << FIXED3W7 << options.time_bucket << " seconds" << endl;
   cout << "repeating 24h bucket              : " << FIXED3W7 << options.day_bucket << " minutes" << endl;
   cout << "Show trail of slow probes         : " << FIXED3W7 << options.timing_detail << endl;
@@ -527,7 +209,7 @@ void summary() {
 
   heading( "QoS" );
   cout << FIXED3 << 100.0 - (double)globalstats.items_slow / (double)globalstats.items * 100.0 << "% ";
-  cout << "of probes return within " << filter.min_duration << "s" << endl;
+  cout << "of probes return within " << options.min_duration << "s" << endl;
 
   cout << endl << "probe count to response time distribution, bucket size " << options.time_bucket << "s" << endl;
   cout << setw(9) << "bucket" << " " << setw(8) << "count" << setw(8) << "%probe" << endl;
@@ -546,21 +228,39 @@ void summary() {
     cout << setw(8) << "min";
     cout << setw(8) << "max";
     cout << setw(8) << "avg";
+    cout << setw(8) << "stdev";
     cout << endl;
     for ( auto w : wait_class_map ) {
       cout << "  " << waitClass2String( w.first ) << " " << FIXEDINT << w.second << " ";
       cout << FIXEDPCT << slow_map[w.first].total / globalstats.total_slow_time * 100.0 << "% ";
-      cout << slow_map[w.first].asString();
+      cout << slow_map[w.first].asString(true);
       cout << endl;
     }
 
     heading( "Slow probes to day-of-week distribution" );
-    cout << setw(10) << "day";
+    cout << setw(9) << "day";
     cout << setw(7) << "%slow";
+    cout << setw(8) << "avg";
+    cout << setw(6) << "blame";
+    cout << " ----------DNS----------";
+    cout << " ----------TCP----------";
+    cout << " ----------TLS----------";
+    cout << " ----------REQ----------";
+    cout << " ----------RSP----------";
+    cout << " ----------DAT----------";
     cout << endl;
     for ( auto d : slow_dow_map ) {
-      cout << setw(10) << dowStr(d.first) << " ";
-      cout << FIXEDPCT << (double)d.second / (double)total_dow_map[d.first] * 100.0 << endl;
+      cout << setw(9) << dowStr(d.first) << " ";
+      cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_dow_map[d.first] * 100.0 << " ";
+      cout << FIXED3W7 << slow_dow_map[d.first].avgResponse() << " ";
+      cout << setw(5) << waitClass2String( slow_dow_map[d.first].blame() ) << " ";
+      cout << slow_dow_map[d.first].namelookup.asString();
+      cout << slow_dow_map[d.first].connect.asString();
+      cout << slow_dow_map[d.first].appconnect.asString();
+      cout << slow_dow_map[d.first].pretransfer.asString();
+      cout << slow_dow_map[d.first].starttransfer.asString();
+      cout << slow_dow_map[d.first].endtransfer.asString();
+      cout << endl;
     }
 
     heading( "Slow probe to daily time bucket distribution" );
@@ -579,7 +279,7 @@ void summary() {
     for ( auto d : slow_day_map ) {
       cout << fixed << setw(2) << setfill('0') << d.first.tm_hour << ":"
            << fixed << setw(2) << setfill('0') << d.first.tm_min << " ";
-      cout << FIXEDPCT << (double)d.second.slow / (double)total_day_map[d.first] * 100.0 << " ";
+      cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_day_map[d.first] * 100.0 << " ";
       cout << FIXED3W7 << slow_day_map[d.first].avgResponse() << " ";
       cout << setw(5) << waitClass2String( slow_day_map[d.first].blame() ) << " ";
       cout << slow_day_map[d.first].namelookup.asString();
@@ -593,7 +293,7 @@ void summary() {
   }
 
   heading( "Curl return codes" );
-  cout << setw(9) << "count" << " " << "code" << endl;
+  cout << setw(9) << "#probes" << " " << "code" << endl;
   for ( auto c : curl_error_map ) {
     cout << FIXEDINT << c.second << " " << curlError2String( c.first ) << endl;
   }
@@ -605,7 +305,7 @@ void summary() {
   }
 
   heading( "HTTP return codes" );
-  cout << setw(9) << "count" << " " << "code" << endl;
+  cout << setw(9) << "#probes" << " " << "code" << endl;
   for ( auto h : http_code_map ) {
     cout << FIXEDINT << h.second << " " << HTTPError2String( h.first ) << endl;
   }
@@ -616,53 +316,98 @@ void summary() {
     }
   }
 
+  heading( "Daily history - all probes" );
+    cout << setw(10) << "date";
+    cout << setw(8) << "%slow";
+    cout << setw(8) << "avg";
+    cout << setw(6) << "blame";
+    cout << " ----------DNS----------";
+    cout << " ----------TCP----------";
+    cout << " ----------TLS----------";
+    cout << " ----------REQ----------";
+    cout << " ----------RSP----------";
+    cout << " ----------DAT----------";
+    cout << endl;
+  for ( auto d : total_date_map ) {
+    cout << setw(4) << setfill('0') << d.first.tm_year+1900;
+    cout << '-' << setw(2) << setfill('0') << d.first.tm_mon;
+    cout << '-' << setw(2) << setfill('0') << d.first.tm_mday;
+    cout << " ";
+    cout << FIXED3W7 << (double)slow_date_map[d.first].getNumItems() / (double)d.second.getNumItems() * 100.0;
+    cout << " ";
+    cout << FIXED3W7 << d.second.avgResponse();
+    cout << " ";
+    cout << setw(5) << waitClass2String( d.second.blame() );
+    cout << " ";
+    cout << d.second.namelookup.asString();
+    cout << d.second.connect.asString();
+    cout << d.second.appconnect.asString();
+    cout << d.second.pretransfer.asString();
+    cout << d.second.starttransfer.asString();
+    cout << d.second.endtransfer.asString();
+    cout << endl;
+  }
+
   heading( "Global stats" );
   cout << "first data point     : " << time_t2String( globalstats.first_time ) << endl;
   cout << "last  data point     : " << time_t2String( globalstats.last_time )  << endl;
   cout << "#probes              : " << globalstats.items << endl;
   cout << "#slow probes         : " << globalstats.items_slow << endl;
   cout << "average response time: " << FIXED3 << globalstats.total_time / globalstats.items << "s" << endl;
+  cout << "estimate network RTT : " << FIXED3 << globalstats.wait_class_stats.getNetworkRoundtrip()*1000.0 << "ms" << endl;
+  cout << "estimate #TLS rtrips : " << globalstats.wait_class_stats.getTLSRoundTrips() << endl;
   cout << setw(4) << "class";
   cout << setw(8) << "%slow";
   cout << setw(8) << "min";
   cout << setw(8) << "max";
   cout << setw(8) << "avg";
+  cout << setw(8) << "stddev";
   cout << setw(8) << "%rtrip";
+  cout << setw(22) << "stability";
   cout << endl;
   cout << setw(5) << waitClass2String( wcDNS ) << " "
        << FIXED3W7 << (double)slow_map[wcDNS].items / (double)globalstats.items * 100.0 << " "
-       << globalstats.wait_class_stats.namelookup.asString() << " "
+       << globalstats.wait_class_stats.namelookup.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.namelookup.total / globalstats.total_time * 100.0
+       << setw(22) << globalstats.wait_class_stats.namelookup.stability()
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcTCPHandshake ) << " "
        << FIXED3W7 << (double)slow_map[wcTCPHandshake].items / (double)globalstats.items * 100.0 << " "
-       << globalstats.wait_class_stats.connect.asString() << " "
+       << globalstats.wait_class_stats.connect.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.connect.total / globalstats.total_time * 100.0
+       << setw(22) << globalstats.wait_class_stats.connect.stability()
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcSSLHandshake ) << " "
        << FIXED3W7 << (double)slow_map[wcSSLHandshake].items / (double)globalstats.items * 100.0 << " "
-       << globalstats.wait_class_stats.appconnect.asString() << " "
+       << globalstats.wait_class_stats.appconnect.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.appconnect.total / globalstats.total_time * 100.0
+       << setw(22) << globalstats.wait_class_stats.appconnect.stability()
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcSendStart ) << " "
        << FIXED3W7 << (double)slow_map[wcSendStart].items / (double)globalstats.items * 100.0 << " "
-       << globalstats.wait_class_stats.pretransfer.asString() << " "
+       << globalstats.wait_class_stats.pretransfer.asString(true) << " "
        << FIXEDPCT<< globalstats.wait_class_stats.pretransfer.total / globalstats.total_time * 100.0
+       << setw(22) << globalstats.wait_class_stats.pretransfer.stability()
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcWaitEnd ) << " "
        << FIXED3W7 << (double)slow_map[wcWaitEnd].items / (double)globalstats.items * 100.0 << " "
-       << globalstats.wait_class_stats.starttransfer.asString() << " "
+       << globalstats.wait_class_stats.starttransfer.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.starttransfer.total / globalstats.total_time * 100.0
+       << setw(22) << globalstats.wait_class_stats.starttransfer.stability()
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcReceiveEnd ) << " "
        << FIXED3W7 << (double)slow_map[wcReceiveEnd].items / (double)globalstats.items * 100.0 << " "
-       << globalstats.wait_class_stats.endtransfer.asString() << " "
+       << globalstats.wait_class_stats.endtransfer.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.endtransfer.total / globalstats.total_time * 100.0
+       << setw(22) << globalstats.wait_class_stats.endtransfer.stability()
        <<  endl;
 }
 
+/**
+ * Program entry.
+ */
 int main( int argc, char* argv[] ) {
-  if ( parseArgs( argc, argv ) ) {
+  if ( parseArgs( argc, argv, options ) ) {
     // to prevent timezone translations
     setenv( "TZ", "UTC", 1 );
     read( cin );
