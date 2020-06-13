@@ -82,21 +82,23 @@ struct QtyStats {
     return ss.str();
   }
 
-  string stability() {
+  string stability( double relate ) {
     double ratio = 1000;
     //if ( getSigma() > 0.0 ) ratio = getAverage() / getSigma();
     if ( getSigma() > 0.0 ) ratio = min / getSigma();
     stringstream ss;
-    if ( getAverage()  >= 0.001 ) {
-      if ( ratio < 0.4 ) ss << "unstable";
-      else if ( ratio < 0.7 ) ss << "iffy";
-      else if ( ratio < 1.1 ) ss << "wobbly";
-      else if ( ratio < 3.0 ) ss << "steady";
-      else if ( ratio < 5.0 ) ss << "sound";
-      else if ( ratio < 7.0 ) ss << "great";
-      else ss << "bombproof";
+    if ( getAverage() / relate  >= 0.01 ) {
+      if ( ratio < 0.005 ) ss << "abysmal";
+      else if ( ratio < 0.05 ) ss << "awful";
+      else if ( ratio < 0.1 ) ss << "bad";
+      else if ( ratio < 0.3 ) ss << "poor";
+      else if ( ratio < 0.7 ) ss << "mediocre";
+      else if ( ratio < 1.5 ) ss << "fair";
+      else if ( ratio < 3.0 ) ss << "good";
+      else if ( ratio < 6.0 ) ss << "excellent";
+      else ss << "phenomenal";
     } else {
-      ss << "";
+      ss << "n/a";
     }
     ss << " (";
     ss << FIXED3W7 << ratio;
