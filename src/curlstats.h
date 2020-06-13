@@ -451,12 +451,12 @@ struct CURL {
       ss << "http=" << http_code << " ";
       ss << "roundtrip : " << FIXED3 << total_time << "s blame " << waitClass2String( getDominantWaitClass() ) << " ";
       ss << fixed << FIXEDPCT << getWaitClassPct( getDominantWaitClass() ) << "% | ";
-      ss << waitClass2String( wcDNS ) << "=" << FIXED3 << time_namelookup << "s, ";
-      ss << waitClass2String( wcTCPHandshake ) << "=" << FIXED3 << time_connect - time_namelookup << "s, ";
-      ss << waitClass2String( wcSSLHandshake ) << "=" << FIXED3 << time_appconnect - time_connect << "s, ";
-      ss << waitClass2String( wcSendStart ) << "=" << FIXED3 << time_pretransfer - time_appconnect << "s, ";
-      ss << waitClass2String( wcWaitEnd )  << "=" << FIXED3 << time_starttransfer - time_pretransfer << "s, ";
-      ss << waitClass2String( wcReceiveEnd ) << "=" << FIXED3 << total_time - time_starttransfer << "s";
+      ss << waitClass2String( wcDNS ) << "=" << FIXED3 << getWaitClassDuration( wcDNS ) << "s, ";
+      ss << waitClass2String( wcTCPHandshake ) << "=" << FIXED3 << getWaitClassDuration( wcTCPHandshake ) << "s, ";
+      ss << waitClass2String( wcSSLHandshake ) << "=" << FIXED3 << getWaitClassDuration( wcSSLHandshake ) << "s, ";
+      ss << waitClass2String( wcSendStart ) << "=" << FIXED3 << getWaitClassDuration( wcSendStart ) << "s, ";
+      ss << waitClass2String( wcWaitEnd )  << "=" << FIXED3 << getWaitClassDuration( wcWaitEnd ) << "s, ";
+      ss << waitClass2String( wcReceiveEnd ) << "=" << FIXED3 << getWaitClassDuration( wcReceiveEnd ) << "s";
     }
     return ss.str();
   };
