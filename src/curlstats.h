@@ -87,7 +87,7 @@ struct QtyStats {
     //if ( getSigma() > 0.0 ) ratio = getAverage() / getSigma();
     if ( getSigma() > 0.0 ) ratio = min / getSigma();
     stringstream ss;
-    if ( getAverage()  > 0.005 ) {
+    if ( getAverage()  >= 0.001 ) {
       if ( ratio < 0.4 ) ss << "unstable";
       else if ( ratio < 0.7 ) ss << "iffy";
       else if ( ratio < 1.1 ) ss << "wobbly";
