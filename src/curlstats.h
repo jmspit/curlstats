@@ -565,14 +565,35 @@ string HTTPError2String( uint16_t code ) {
   stringstream ss;
   switch ( code ) {
     case 200 :
-      ss << "Ok";
+      ss << "OK";
       break;
+    case 201 :
+      ss << "Created";
+      break;
+    case 202 :
+      ss << "Accepted";
+      break;
+    case 204 :
+      ss << "No Content";
+      break;
+
     case 301:
       ss << "Moved Permanently";
       break;
     case 302:
       ss << "Found / moved temporarily";
       break;
+    case 304:
+      ss << "Not modified";
+      break;
+    case 307:
+      ss << "Temporary Redirect";
+      break;
+    case 308:
+      ss << "Permanent Redirect";
+      break;
+
+
     case 400:
       ss << "Bad request";
       break;
@@ -590,6 +611,31 @@ string HTTPError2String( uint16_t code ) {
       break;
     case 405:
       ss << "Method Not Allowed";
+      break;
+    case 406:
+      ss << "Not Acceptable";
+      break;
+    case 407:
+      ss << "Proxy Authentication Required";
+      break;
+    case 408:
+      ss << "Request Timeout";
+      break;
+    case 409:
+      ss << "Conflict";
+      break;
+    case 410:
+      ss << "Gone";
+      break;
+
+    case 500:
+      ss << "Internal Server Error";
+      break;
+    case 501:
+      ss << "Not Implemented";
+      break;
+    case 502:
+      ss << "Bad Gateway";
       break;
     case 503:
       ss << "Service unavailable";
