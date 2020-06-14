@@ -12,10 +12,10 @@ using namespace std;
 
 #define DEFAULT_DAY_BUCKET 30
 #define DEFAULT_MIN_DURATION 1.0
-#define DEFAULT_TIME_BUCKET 1.0
+#define DEFAULT_TIME_BUCKET 0.2
 #define DEFAULT_TIMING_DETAIL false
 #define DEFAULT_TIMING_DETAIL false
-#define DEFAULT_HISTO_MIN_PCT 0.04
+#define DEFAULT_HISTO_MIN_PCT 0.0
 
 /**
  * Options passed through command line.
@@ -514,17 +514,25 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
       case '?':
       case 'h':
       default :
+        cout << "reads from standard input" << endl;
+        cout << "see https://github.com/jmspit/curlstats" << endl;
+        cout << endl;
         cout << "usage: " << endl;
         cout << "  -b seconds" << endl;
-        cout << "     (real) 24h time distribution bucket" << endl;
+        cout << "     (real) response time histogram bucket in seconds" << endl;
+        cout << "     default: " << DEFAULT_TIME_BUCKET << endl;
         cout << "  -d minimum" << endl;
         cout << "     (real) specify a slow threshold filter in seconds" << endl;
+        cout << "     default: " << DEFAULT_MIN_DURATION << endl;
         cout << "  -p minimum" << endl;
-        cout << "     only show histogram buckets with %probe larger than this value" << endl;
+        cout << "     only show histogram buckets with % total probes larger than this value" << endl;
+        cout << "     default: " << DEFAULT_HISTO_MIN_PCT << endl;
         cout << "  -t" << endl;
         cout << "     include a full list of slow probes" << endl;
+        cout << "     default: false" << endl;
         cout << "  -T minutes" << endl;
         cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 )" << endl;
+        cout << "     default: " << DEFAULT_DAY_BUCKET << endl;
         cout << endl;
         cout << waitClass2String( wcDNS, true )  << endl;
         cout << waitClass2String( wcTCPHandshake, true )  << endl;
