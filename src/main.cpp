@@ -426,7 +426,7 @@ void summary() {
     cout << setw(10) << "date";
     cout << setw(8) << "%slow";
     cout << setw(8) << "avg";
-    cout << setw(6) << "blame";
+    cout << setw(6) << "most";
     cout << " ----------DNS----------";
     cout << " ----------TCP----------";
     cout << " ----------TLS----------";
