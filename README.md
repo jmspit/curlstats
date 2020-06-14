@@ -221,13 +221,13 @@ by other means, likely causes for higher TCP are socket and/or CPU starvation pr
 ### TLS Handshake (TLS)
 
 If Transport Layer Security is used, TLS needs to handshake as well. The handshake involves establishing
-trust on peer identity, establishing a TLS protocol version and cipher to use, and negotiate a session
+trust on peer identity, negotiating a TLS protocol version and cipher to use, and negotiate a session
 key which will be used to encrypt ensuing traffic.
 
 *The TLS wait class equates to network latency and/or CPU starvation on either client or server, although this no longer
 is a common problem with the advent of faster TLS handshakes. However, if
 network latency is the dominant factor, that should also be visible in the TCP wait class. If TLS is high and
-TCP is low during the same probe, check if the server is having trouble producing TLS handshakes.*
+TCP is low during the same probes, check if the server is having trouble producing TLS handshakes.*
 
 ### Request send (REQ)
 
@@ -238,8 +238,8 @@ but is typically (very) low.*
 
 ### Response received (RSP)
 
-The first byte of the response is received - so this is the time the client spent waiting on the server's answer,
-which is the time the server needed to construct the response plus the time it took before the network
+The first byte of the response is received, so this is the time the client spent waiting on the server,
+the time the server needed to construct the response plus the time it took before the transport
 delivered it to the client. If the TCP wait class is low in the same probes, it is safe to assume the time is dominated
 by the server response.
 
@@ -251,7 +251,7 @@ The response may require more than one network packet to return. This is the tim
 last packet of the response.
 
 *The DAT wait class equates to response data transfer. If DAT is high whilst TCP is low, the server may have trouble
-presenting the data or the transport speed is the limiting factor.*
+presenting the data or the transport speed is the limiting factor on a large response message.*
 
 ## Interpreting the output
 
