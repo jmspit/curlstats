@@ -97,7 +97,7 @@ struct QtyStats {
       else if ( ratio < 0.2 ) ss << "poor";
       else if ( ratio < 0.3 ) ss << "mediocre";
       else if ( ratio < 1.2 ) ss << "fair";
-      else if ( ratio < 3.0 ) ss << "good";
+      else if ( ratio < 2.5 ) ss << "good";
       else if ( ratio < 10.0 ) ss << "excellent";
       else ss << "phenomenal";
     } else {
