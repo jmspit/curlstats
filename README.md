@@ -182,7 +182,7 @@ class   %slow     min     max     avg  stddev  %rtrip             stability
 
 ## Examples
 
-The generate statistics, copy and edit the src/curl_config.example script
+The generate statistics, copy and edit the [curl_config.example](src/curl_config.example) script
 
 ```
 url https://www.gnu.org
