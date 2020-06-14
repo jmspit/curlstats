@@ -194,7 +194,7 @@ Note that receiving NXDOMAIN *is* a response - just not one that is very useful 
 another DNS server (if more than one is configured).
 
 There are known caveats when using ipv6 DNS queries on clients that support both ipv4 and ipv6 transparently. Good
-developers will not make their software depend on the IP address family used (AF_INET or AF_INET6) but specify AF_UNSPEC
+software will not depend on the IP address family used (AF_INET or AF_INET6) but specify AF_UNSPEC
 instead, letting the OS decide what to use. If the OS has AF_INET6 enabled, and the developer uses the
 prescribed getaddrinfo call that supersedes gethostbyname, the OS *will* attempt to use ipv6, and thus send
 two DNS queries - one for an A (ipv4) and one for an AAA record (ipv6) *from the same source port*. This means the query
