@@ -231,7 +231,7 @@ void read( std::istream& in ) {
 void summary() {
 
   heading( "Options in effect" );
-  cout << "Slowness threshold                : " << FIXED3W7 << options.min_duration << " seconds" << endl;
+  cout << "Slowness threshold             : " << FIXED3W7 << options.min_duration << " seconds" << endl;
   cout << "Response time histogram bucket : " << FIXED3W7 << options.time_bucket << " seconds" << endl;
   cout << "repeating 24h histogram bucket : " << FIXED3W7 << options.day_bucket << " minutes" << endl;
   cout << "histogram minimum display pct  : " << FIXED3W7 << options.histo_min_pct << "%" << endl;
