@@ -1,50 +1,84 @@
 #!/bin/bash
-#set -x
-
-timeout_default=10
-
-url="$1"
-interval="$2"
-timeout="$3"
-extra_args="$4"
 
 function printHelp {
-  echo "$(basename $0) URL INTERVAL"
-  echo "  URL      endpoint to GET"
-  echo "  INTERVAL number of seconds between gets"
-  echo "  TIMEOUT  connect timeout default ${timeout_default}"
-  echo "  extra    arguments passed to curl"
+  echo "$(basename $0) config-file"
 }
 
-if [ -z "${url}" ]; then
-  echo "error: need to specify URL"
-  printHelp
+function exitError() {
+  echo "$1" >&2
+  #echo "$1"
   exit 1
+}
+
+function findExecutable() {
+  #set -x
+  local exec_name="$1"
+  local exec_path="$(which $1)"
+  if [ -x "${exec_path}" ]; then
+    local -n outvar=$2
+    outvar="${exec_path}"
+  else
+    exitError "cannot find executable ${exec_name}"
+  fi
+  #set +x
+}
+
+config="$1"
+if [ ! -r "${config}" ]; then
+  exitError "cannot read config file '${config}'"
 fi
 
+interval="$2"
 if [[ ${interval} != ?(-)+([0-9]) ]]; then
-  echo "error: need to specify integer INTERVAL"
-  printHelp
-  exit 1
+  exitError "error: need to specify integer INTERVAL"
 fi
 
-if [[ ${timeout} != ?(-)+([0-9]) ]]; then
-  timeout=${timeout_default}
+findExecutable awk AWK_EXEC
+findExecutable cat CAT_EXEC
+findExecutable curl CURL_EXEC
+findExecutable date DATE_EXEC
+findExecutable echo ECHO_EXEC
+findExecutable grep GREP_EXEC
+findExecutable hostname HOSTNAME_EXEC
+findExecutable ip IP_EXEC
+findExecutable sleep SLEEP_EXEC
+findExecutable uname UNAME_EXEC
+
+${ECHO_EXEC} "# probing resumes = $(date +'%Y-%m-%d %H:%M:%S')"
+${ECHO_EXEC} "# client FQDN     = $(${HOSTNAME_EXEC} -f)"
+${ECHO_EXEC} "# client kernel   = $(${UNAME_EXEC} -r)"
+if [ -f /etc/os-release ]; then
+  ${ECHO_EXEC} "# client OS       = $(${GREP_EXEC} ^PRETTY_NAME /etc/os-release | ${AWK_EXEC} -F\" '{print $2}')"
 fi
+${ECHO_EXEC} "# client IP       = $(${IP_EXEC} route get 1 | ${AWK_EXEC} '{print $(NF-2);exit}')"
+${ECHO_EXEC} "# extra args      = ${extra_args}"
+${CURL_EXEC} --version | while read LINE
+do
+  ${ECHO_EXEC} "# curl            = ${LINE}"
+done
 
-echo "#url      = ${url}"
-echo "#interval = ${interval}"
-echo "#timeout  = ${timeout}"
-echo "#client   = $(hostname -f)"
-echo "#IP       = $(ip route get 1 | awk '{print $(NF-2);exit}')"
-echo "#args     = ${extra_args}"
+${GREP_EXEC} -v "^#" "${config}" | ${GREP_EXEC} -v "^$" | while read LINE
+do
+    ${ECHO_EXEC} "# curl config     = ${LINE}"
+done
 
-echo "#YYYY HH:MI:SS;curl error;http connect code;http response code;ssl verify result;total_time;dns lookup;tcp handshake;ssl handshake;dns lookup+tcp+ssl handshake;redirect time;time to first byte sent"
+${ECHO_EXEC} "# YYYY HH:MI:SS ;\
+ curl error ;\
+ http connect code ;\
+ http response code ;\
+ ssl verify result ;\
+ total_time ;\
+ dns lookup ;\
+ tcp handshake ;\
+ ssl handshake ;\
+ dns lookup+tcp+ssl handshake;\
+ redirect time;\
+ time to first byte sent"
 while true
 do
-  dstamp="$(date '+%Y-%m-%d %H:%M:%S')"
-  curlout="$(curl $extra_args -siw '%{http_connect};%{http_code};%{ssl_verify_result};%{time_total};%{time_namelookup};%{time_connect};%{time_appconnect};%{time_pretransfer};%{time_redirect};%{time_starttransfer}' --connect-timeout ${timeout} --output /dev/null -H 'Accept: application/json' -H 'Content-Type: application/json' -X GET ${url})"
-  curl_error=$(echo $?)
-  echo "${dstamp};${curl_error};${curlout}"
-  sleep ${interval}
+  dstamp="$(${DATE_EXEC} '+%Y-%m-%d %H:%M:%S')"
+  curlout="$(${CURL_EXEC} -K ${config})"
+  curl_error=$(${ECHO_EXEC} $?)
+  ${ECHO_EXEC} "${dstamp};${curl_error};${curlout}"
+  ${SLEEP_EXEC} ${interval}
 done
