@@ -219,17 +219,13 @@ void read( std::istream& in ) {
         heading( "Comments from input" );
         has_comment_heading = true;
       }
-      if ( line.length() > 1 && line[1] != 'Y' ) cout << line << endl;
+      if ( line.length() > 2 && line[2] != 'Y' ) cout << line << endl;
     }
     getline( in, line );
   }
 }
 
-/**
- * Write summary.
- */
-void summary() {
-
+void summary_options() {
   heading( "Options in effect" );
   cout << "Slowness threshold             : " << FIXED3W7 << options.min_duration << " seconds" << endl;
   cout << "Response time histogram bucket : " << FIXED3W7 << options.time_bucket << " seconds" << endl;
@@ -243,161 +239,124 @@ void summary() {
       cout << l.asString() << endl;
     }
   }
+}
 
+void show_histogram( const map<double,size_t> &histo ) {
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
+  for ( auto b : histo ) {
+    double pct = b.second/(double)globalstats.items*100.0;
+    if ( pct >= options.histo_min_pct ) {
+      cout << "<" << FIXED3W7 << b.first;
+      cout << "s " << FIXEDINT << b.second;
+      cout << " " << FIXEDPCT << pct << endl;
+    }
+  }
+}
+
+void summary_qos() {
   heading( "QoS" );
   cout << FIXED3 << 100.0 - (double)globalstats.items_slow / (double)globalstats.items * 100.0 << "% ";
   cout << "of probes return within " << options.min_duration << "s" << endl;
 
   cout << endl << "probe count to response time distribution, bucket size " << options.time_bucket << "s" << endl;
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
-  for ( auto b : all_buckets ) {
-    double pct = b.second/(double)globalstats.items*100.0;
-    if ( pct >= options.histo_min_pct ) {
-      cout << "<" << FIXED3W7 << b.first;
-      cout << "s " << FIXEDINT << b.second;
-      cout << " " << FIXEDPCT << pct << endl;
-    }
-  }
+  show_histogram( all_buckets );
 
   cout << endl << "probe count to DNS wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
-  for ( auto b : dns_buckets ) {
-    double pct = b.second/(double)globalstats.items*100.0;
-    if ( pct >= options.histo_min_pct ) {
-      cout << "<" << FIXED3W7 << b.first;
-      cout << "s " << FIXEDINT << b.second;
-      cout << " " << FIXEDPCT << pct << endl;
-    }
-  }
+  show_histogram( dns_buckets );
 
   cout << endl << "probe count to TCP wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
-  for ( auto b : tcp_buckets ) {
-    double pct = b.second/(double)globalstats.items*100.0;
-    if ( pct >= options.histo_min_pct ) {
-      cout << "<" << FIXED3W7 << b.first;
-      cout << "s " << FIXEDINT << b.second;
-      cout << " " << FIXEDPCT << pct << endl;
-    }
-  }
+  show_histogram( tcp_buckets );
 
   cout << endl << "probe count to TLS wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
-  for ( auto b : tls_buckets ) {
-    double pct = b.second/(double)globalstats.items*100.0;
-    if ( pct >= options.histo_min_pct ) {
-      cout << "<" << FIXED3W7 << b.first;
-      cout << "s " << FIXEDINT << b.second;
-      cout << " " << FIXEDPCT << pct << endl;
-    }
-  }
+  show_histogram( tls_buckets );
 
   cout << endl << "probe count to REQ wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
-  for ( auto b : req_buckets ) {
-    double pct = b.second/(double)globalstats.items*100.0;
-    if ( pct >= options.histo_min_pct ) {
-      cout << "<" << FIXED3W7 << b.first;
-      cout << "s " << FIXEDINT << b.second;
-      cout << " " << FIXEDPCT << pct << endl;
-    }
-  }
+  show_histogram( req_buckets );
 
   cout << endl << "probe count to RSP wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
-  for ( auto b : rsp_buckets ) {
-    double pct = b.second/(double)globalstats.items*100.0;
-    if ( pct >= options.histo_min_pct ) {
-      cout << "<" << FIXED3W7 << b.first;
-      cout << "s " << FIXEDINT << b.second;
-      cout << " " << FIXEDPCT << pct << endl;
-    }
-  }
+  show_histogram( rsp_buckets );
 
   cout << endl << "probe count to DAT wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
-  for ( auto b : dat_buckets ) {
-    double pct = b.second/(double)globalstats.items*100.0;
-    if ( pct >= options.histo_min_pct ) {
-      cout << "<" << FIXED3W7 << b.first;
-      cout << "s " << FIXEDINT << b.second;
-      cout << " " << FIXEDPCT << pct << endl;
-    }
+  show_histogram( dat_buckets );
+}
+
+void summary_wait_class() {
+  heading( "Slow probe to wait-class distribution" );
+  cout << setw(5) << "class";
+  cout << setw(10) << "#probes";
+  cout << setw(8) << "%blame";
+  cout << setw(8) << "min";
+  cout << setw(8) << "max";
+  cout << setw(8) << "avg";
+  cout << setw(8) << "stdev";
+  cout << endl;
+  for ( auto w : wait_class_map ) {
+    cout << "  " << waitClass2String( w.first ) << " " << FIXEDINT << w.second << " ";
+    cout << FIXEDPCT << slow_map[w.first].total / globalstats.total_slow_time * 100.0 << "% ";
+    cout << slow_map[w.first].asString(true);
+    cout << endl;
   }
+}
 
-  if ( globalstats.items_slow > 0 ) {
-
-    heading( "Slow probe to wait-class distribution" );
-    cout << setw(5) << "class";
-    cout << setw(10) << "#probes";
-    cout << setw(8) << "%blame";
-    cout << setw(8) << "min";
-    cout << setw(8) << "max";
-    cout << setw(8) << "avg";
-    cout << setw(8) << "stdev";
+void summary_slow_probes_to_dow() {
+  heading( "Slow probes to day-of-week distribution" );
+  cout << setw(9) << "day";
+  cout << setw(7) << "%slow";
+  cout << setw(8) << "avg";
+  cout << setw(6) << "blame";
+  cout << " ----------DNS----------";
+  cout << " ----------TCP----------";
+  cout << " ----------TLS----------";
+  cout << " ----------REQ----------";
+  cout << " ----------RSP----------";
+  cout << " ----------DAT----------";
+  cout << endl;
+  for ( auto d : slow_dow_map ) {
+    cout << setw(9) << dowStr(d.first) << " ";
+    cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_dow_map[d.first] * 100.0 << " ";
+    cout << FIXED3W7 << slow_dow_map[d.first].avgResponse() << " ";
+    cout << setw(5) << waitClass2String( slow_dow_map[d.first].blame() ) << " ";
+    cout << slow_dow_map[d.first].namelookup.asString();
+    cout << slow_dow_map[d.first].connect.asString();
+    cout << slow_dow_map[d.first].appconnect.asString();
+    cout << slow_dow_map[d.first].pretransfer.asString();
+    cout << slow_dow_map[d.first].starttransfer.asString();
+    cout << slow_dow_map[d.first].endtransfer.asString();
     cout << endl;
-    for ( auto w : wait_class_map ) {
-      cout << "  " << waitClass2String( w.first ) << " " << FIXEDINT << w.second << " ";
-      cout << FIXEDPCT << slow_map[w.first].total / globalstats.total_slow_time * 100.0 << "% ";
-      cout << slow_map[w.first].asString(true);
-      cout << endl;
-    }
-
-    heading( "Slow probes to day-of-week distribution" );
-    cout << setw(9) << "day";
-    cout << setw(7) << "%slow";
-    cout << setw(8) << "avg";
-    cout << setw(6) << "blame";
-    cout << " ----------DNS----------";
-    cout << " ----------TCP----------";
-    cout << " ----------TLS----------";
-    cout << " ----------REQ----------";
-    cout << " ----------RSP----------";
-    cout << " ----------DAT----------";
-    cout << endl;
-    for ( auto d : slow_dow_map ) {
-      cout << setw(9) << dowStr(d.first) << " ";
-      cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_dow_map[d.first] * 100.0 << " ";
-      cout << FIXED3W7 << slow_dow_map[d.first].avgResponse() << " ";
-      cout << setw(5) << waitClass2String( slow_dow_map[d.first].blame() ) << " ";
-      cout << slow_dow_map[d.first].namelookup.asString();
-      cout << slow_dow_map[d.first].connect.asString();
-      cout << slow_dow_map[d.first].appconnect.asString();
-      cout << slow_dow_map[d.first].pretransfer.asString();
-      cout << slow_dow_map[d.first].starttransfer.asString();
-      cout << slow_dow_map[d.first].endtransfer.asString();
-      cout << endl;
-    }
-
-    heading( "Slow probe to daily time bucket distribution" );
-    cout << "truncated to " << options.day_bucket << " minute buckets, per waitclass min max avg" << endl;
-    cout << setw(4) << "hh:mm";
-    cout << setw(7) << "%slow";
-    cout << setw(8) << "avg";
-    cout << setw(6) << "blame";
-    cout << " ----------DNS----------";
-    cout << " ----------TCP----------";
-    cout << " ----------TLS----------";
-    cout << " ----------REQ----------";
-    cout << " ----------RSP----------";
-    cout << " ----------DAT----------";
-    cout << endl;
-    for ( auto d : slow_day_map ) {
-      cout << fixed << setw(2) << setfill('0') << d.first.tm_hour << ":"
-           << fixed << setw(2) << setfill('0') << d.first.tm_min << " ";
-      cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_day_map[d.first] * 100.0 << " ";
-      cout << FIXED3W7 << slow_day_map[d.first].avgResponse() << " ";
-      cout << setw(5) << waitClass2String( slow_day_map[d.first].blame() ) << " ";
-      cout << slow_day_map[d.first].namelookup.asString();
-      cout << slow_day_map[d.first].connect.asString();
-      cout << slow_day_map[d.first].appconnect.asString();
-      cout << slow_day_map[d.first].pretransfer.asString();
-      cout << slow_day_map[d.first].starttransfer.asString();
-      cout << slow_day_map[d.first].endtransfer.asString();
-      cout << endl;
-    }
   }
+}
 
+void summary_slow_probes_to_daily() {
+  heading( "Slow probe to daily time bucket distribution" );
+  cout << "truncated to " << options.day_bucket << " minute buckets, per waitclass min max avg" << endl;
+  cout << setw(4) << "hh:mm";
+  cout << setw(7) << "%slow";
+  cout << setw(8) << "avg";
+  cout << setw(6) << "blame";
+  cout << " ----------DNS----------";
+  cout << " ----------TCP----------";
+  cout << " ----------TLS----------";
+  cout << " ----------REQ----------";
+  cout << " ----------RSP----------";
+  cout << " ----------DAT----------";
+  cout << endl;
+  for ( auto d : slow_day_map ) {
+    cout << fixed << setw(2) << setfill('0') << d.first.tm_hour << ":"
+         << fixed << setw(2) << setfill('0') << d.first.tm_min << " ";
+    cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_day_map[d.first] * 100.0 << " ";
+    cout << FIXED3W7 << slow_day_map[d.first].avgResponse() << " ";
+    cout << setw(5) << waitClass2String( slow_day_map[d.first].blame() ) << " ";
+    cout << slow_day_map[d.first].namelookup.asString();
+    cout << slow_day_map[d.first].connect.asString();
+    cout << slow_day_map[d.first].appconnect.asString();
+    cout << slow_day_map[d.first].pretransfer.asString();
+    cout << slow_day_map[d.first].starttransfer.asString();
+    cout << slow_day_map[d.first].endtransfer.asString();
+    cout << endl;
+  }
+}
+
+void summary_curl_errors() {
   heading( "Curl return codes" );
   cout << setw(9) << "#probes" << " " << "code" << endl;
   for ( auto c : curl_error_map ) {
@@ -409,7 +368,9 @@ void summary() {
       cout << c.asString() << endl;
     }
   }
+}
 
+void summary_http_errors() {
   heading( "HTTP return codes" );
   cout << setw(9) << "#probes" << " " << "code" << endl;
   for ( auto h : http_code_map ) {
@@ -421,19 +382,21 @@ void summary() {
       cout << h.asString() << endl;
     }
   }
+}
 
+void summary_daily_history() {
   heading( "Daily history - all probes" );
-    cout << setw(10) << "date";
-    cout << setw(8) << "%slow";
-    cout << setw(8) << "avg";
-    cout << setw(6) << "most";
-    cout << " ----------DNS----------";
-    cout << " ----------TCP----------";
-    cout << " ----------TLS----------";
-    cout << " ----------REQ----------";
-    cout << " ----------RSP----------";
-    cout << " ----------DAT----------";
-    cout << endl;
+  cout << setw(10) << "date";
+  cout << setw(8) << "%slow";
+  cout << setw(8) << "avg";
+  cout << setw(6) << "most";
+  cout << " ----------DNS----------";
+  cout << " ----------TCP----------";
+  cout << " ----------TLS----------";
+  cout << " ----------REQ----------";
+  cout << " ----------RSP----------";
+  cout << " ----------DAT----------";
+  cout << endl;
   for ( auto d : total_date_map ) {
     cout << setw(4) << setfill('0') << d.first.tm_year+1900;
     cout << '-' << setw(2) << setfill('0') << d.first.tm_mon;
@@ -453,7 +416,9 @@ void summary() {
     cout << d.second.endtransfer.asString();
     cout << endl;
   }
+}
 
+void summary_global_stats() {
   heading( "Global stats" );
   cout << "first probe          : " << time_t2String( globalstats.first_time ) << endl;
   cout << "last  probe          : " << time_t2String( globalstats.last_time )  << endl;
@@ -509,6 +474,23 @@ void summary() {
        << FIXEDPCT << globalstats.wait_class_stats.endtransfer.total / globalstats.total_time * 100.0
        << setw(22) << globalstats.wait_class_stats.endtransfer.monotonicity(global_avg_response)
        <<  endl;
+}
+
+/**
+ * Write summary.
+ */
+void summary() {
+  summary_options();
+  summary_qos();
+  if ( globalstats.items_slow > 0 ) {
+    summary_wait_class();
+    summary_slow_probes_to_dow();
+    summary_slow_probes_to_daily();
+  }
+  summary_curl_errors();
+  summary_http_errors();
+  summary_daily_history();
+  summary_global_stats();
 }
 
 /**
