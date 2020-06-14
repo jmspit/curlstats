@@ -235,7 +235,7 @@ The data (in the above case tee-ed to data/gnu.org.dat) can be parsed and analyz
 cat data/gnu.org.dat | curlstats
 ```
 
-Curlstats has several command line options to tweak its behavior
+curlstats provides several command line options to tweak its behavior
 
 ```
 usage:
