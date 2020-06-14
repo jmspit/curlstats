@@ -72,6 +72,36 @@ map<double,size_t> slow_buckets;
 map<double,size_t> all_buckets;
 
 /**
+ * Map all DNS to duration buckets.
+ */
+map<double,size_t> dns_buckets;
+
+/**
+ * Map all TCP to duration buckets.
+ */
+map<double,size_t> tcp_buckets;
+
+/**
+ * Map all TLS to duration buckets.
+ */
+map<double,size_t> tls_buckets;
+
+/**
+ * Map all REQ to duration buckets.
+ */
+map<double,size_t> req_buckets;
+
+/**
+ * Map all RSP to duration buckets.
+ */
+map<double,size_t> rsp_buckets;
+
+/**
+ * Map all DAT to duration buckets.
+ */
+map<double,size_t> dat_buckets;
+
+/**
  * Map probe count to curl error code
  */
 map<uint16_t,size_t> curl_error_map;
@@ -148,6 +178,14 @@ void read( std::istream& in ) {
             slow_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
           }
           globalstats.total_time += curl.total_time;
+
+          dns_buckets[ bucket( curl.getWaitClassDuration( wcDNS ), options.time_bucket ) ]++;
+          tcp_buckets[ bucket( curl.getWaitClassDuration( wcTCPHandshake ), options.time_bucket ) ]++;
+          tls_buckets[ bucket( curl.getWaitClassDuration( wcSSLHandshake ), options.time_bucket ) ]++;
+          req_buckets[ bucket( curl.getWaitClassDuration( wcSendStart ), options.time_bucket ) ]++;
+          rsp_buckets[ bucket( curl.getWaitClassDuration( wcWaitEnd ), options.time_bucket ) ]++;
+          dat_buckets[ bucket( curl.getWaitClassDuration( wcReceiveEnd ), options.time_bucket ) ]++;
+
           globalstats.wait_class_stats.namelookup.addValue( curl.getWaitClassDuration( wcDNS ) );
           globalstats.wait_class_stats.connect.addValue( curl.getWaitClassDuration( wcTCPHandshake ) );
           globalstats.wait_class_stats.appconnect.addValue( curl.getWaitClassDuration( wcSSLHandshake ) );
@@ -194,9 +232,10 @@ void summary() {
 
   heading( "Options in effect" );
   cout << "Slowness threshold                : " << FIXED3W7 << options.min_duration << " seconds" << endl;
-  cout << "Response time distribution bucket : " << FIXED3W7 << options.time_bucket << " seconds" << endl;
-  cout << "repeating 24h bucket              : " << FIXED3W7 << options.day_bucket << " minutes" << endl;
-  cout << "Show trail of slow probes         : " << FIXED3W7 << options.timing_detail << endl;
+  cout << "Response time histogram bucket : " << FIXED3W7 << options.time_bucket << " seconds" << endl;
+  cout << "repeating 24h histogram bucket : " << FIXED3W7 << options.day_bucket << " minutes" << endl;
+  cout << "histogram minimum display pct  : " << FIXED3W7 << options.histo_min_pct << "%" << endl;
+  cout << "Show trail of slow probes      : " << FIXED3W7 << options.timing_detail << endl;
 
   if ( options.timing_detail ) {
     heading( "List of slow probes" );
@@ -210,11 +249,80 @@ void summary() {
   cout << "of probes return within " << options.min_duration << "s" << endl;
 
   cout << endl << "probe count to response time distribution, bucket size " << options.time_bucket << "s" << endl;
-  cout << setw(9) << "bucket" << " " << setw(8) << "count" << setw(8) << "%probe" << endl;
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
   for ( auto b : all_buckets ) {
-    cout << "<" << FIXED3W7 << b.first;
-    cout << "s " << FIXEDINT << b.second;
-    cout << " " << FIXEDPCT << b.second/(double)globalstats.items*100 << endl;
+    double pct = b.second/(double)globalstats.items*100.0;
+    if ( pct >= options.histo_min_pct ) {
+      cout << "<" << FIXED3W7 << b.first;
+      cout << "s " << FIXEDINT << b.second;
+      cout << " " << FIXEDPCT << pct << endl;
+    }
+  }
+
+  cout << endl << "probe count to DNS wait time distribution, bucket size " << options.time_bucket << "s" << endl;
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
+  for ( auto b : dns_buckets ) {
+    double pct = b.second/(double)globalstats.items*100.0;
+    if ( pct >= options.histo_min_pct ) {
+      cout << "<" << FIXED3W7 << b.first;
+      cout << "s " << FIXEDINT << b.second;
+      cout << " " << FIXEDPCT << pct << endl;
+    }
+  }
+
+  cout << endl << "probe count to TCP wait time distribution, bucket size " << options.time_bucket << "s" << endl;
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
+  for ( auto b : tcp_buckets ) {
+    double pct = b.second/(double)globalstats.items*100.0;
+    if ( pct >= options.histo_min_pct ) {
+      cout << "<" << FIXED3W7 << b.first;
+      cout << "s " << FIXEDINT << b.second;
+      cout << " " << FIXEDPCT << pct << endl;
+    }
+  }
+
+  cout << endl << "probe count to TLS wait time distribution, bucket size " << options.time_bucket << "s" << endl;
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
+  for ( auto b : tls_buckets ) {
+    double pct = b.second/(double)globalstats.items*100.0;
+    if ( pct >= options.histo_min_pct ) {
+      cout << "<" << FIXED3W7 << b.first;
+      cout << "s " << FIXEDINT << b.second;
+      cout << " " << FIXEDPCT << pct << endl;
+    }
+  }
+
+  cout << endl << "probe count to REQ wait time distribution, bucket size " << options.time_bucket << "s" << endl;
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
+  for ( auto b : req_buckets ) {
+    double pct = b.second/(double)globalstats.items*100.0;
+    if ( pct >= options.histo_min_pct ) {
+      cout << "<" << FIXED3W7 << b.first;
+      cout << "s " << FIXEDINT << b.second;
+      cout << " " << FIXEDPCT << pct << endl;
+    }
+  }
+
+  cout << endl << "probe count to RSP wait time distribution, bucket size " << options.time_bucket << "s" << endl;
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
+  for ( auto b : rsp_buckets ) {
+    double pct = b.second/(double)globalstats.items*100.0;
+    if ( pct >= options.histo_min_pct ) {
+      cout << "<" << FIXED3W7 << b.first;
+      cout << "s " << FIXEDINT << b.second;
+      cout << " " << FIXEDPCT << pct << endl;
+    }
+  }
+
+  cout << endl << "probe count to DAT wait time distribution, bucket size " << options.time_bucket << "s" << endl;
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
+  for ( auto b : dat_buckets ) {
+    double pct = b.second/(double)globalstats.items*100.0;
+    if ( pct >= options.histo_min_pct ) {
+      cout << "<" << FIXED3W7 << b.first;
+      cout << "s " << FIXEDINT << b.second;
+      cout << " " << FIXEDPCT << pct << endl;
+    }
   }
 
   if ( globalstats.items_slow > 0 ) {
@@ -354,7 +462,7 @@ void summary() {
   cout << "%slow probes         : " << FIXED3 << (double)globalstats.items_slow/(double)globalstats.items*100.0 << endl;
   double global_avg_response = globalstats.total_time / globalstats.items;
   cout << "average response time: " << FIXED3 << global_avg_response << "s" << endl;
-  cout << "optimal response time: " << FIXED3 << globalstats.wait_class_stats.getOptimalResponse() << "s" << endl;
+  cout << "ideal response time  : " << FIXED3 << globalstats.wait_class_stats.getOptimalResponse() << "s" << endl;
   cout << "estimate network RTT : " << FIXED3 << globalstats.wait_class_stats.getNetworkRoundtrip()*1000.0 << "ms" << endl;
   cout << setw(4) << "class";
   cout << setw(8) << "%slow";

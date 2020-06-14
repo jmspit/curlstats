@@ -14,6 +14,8 @@ using namespace std;
 #define DEFAULT_MIN_DURATION 1.0
 #define DEFAULT_TIME_BUCKET 1.0
 #define DEFAULT_TIMING_DETAIL false
+#define DEFAULT_TIMING_DETAIL false
+#define DEFAULT_HISTO_MIN_PCT 0.04
 
 /**
  * Options passed through command line.
@@ -22,11 +24,13 @@ struct Options {
   Options() : timing_detail(DEFAULT_TIMING_DETAIL),
               time_bucket(DEFAULT_TIME_BUCKET),
               day_bucket(DEFAULT_DAY_BUCKET),
-              min_duration(DEFAULT_MIN_DURATION) {};
+              min_duration(DEFAULT_MIN_DURATION),
+              histo_min_pct(DEFAULT_HISTO_MIN_PCT) {};
   bool   timing_detail;
   double time_bucket;
   int    day_bucket;
   double min_duration;
+  double histo_min_pct;
 };
 
 /**
@@ -84,8 +88,7 @@ struct QtyStats {
 
   string stability( double relate ) {
     double ratio = 1000;
-    //if ( getSigma() > 0.0 ) ratio = getAverage() / getSigma();
-    if ( getSigma() > 0.0 ) ratio = min / getSigma();
+    if ( getSigma() > 0.0 ) ratio = 2.5 * min / getSigma();
     stringstream ss;
     if ( getAverage() / relate  >= 0.01 ) {
       if ( ratio < 0.005 ) ss << "abysmal";
@@ -487,7 +490,7 @@ struct CURL {
 bool parseArgs( int argc, char* argv[], Options &options ) {
   for(;;)
   {
-    switch( getopt(argc, argv, "d:tb:T:h") ) // note the colon (:) to indicate that 'b' has a parameter and is not a switch
+    switch( getopt(argc, argv, "d:tb:T:p:h") ) // note the colon (:) to indicate that 'b' has a parameter and is not a switch
     {
       case 'b':
         options.time_bucket = stod( optarg );
@@ -495,6 +498,10 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
       case 'd':
         options.min_duration = stod( optarg );
         if ( options.min_duration == 0 ) options.min_duration = DEFAULT_MIN_DURATION;
+        continue;
+      case 'p':
+        options.histo_min_pct = stod( optarg );
+        if ( options.histo_min_pct > 10.0 ) options.histo_min_pct = DEFAULT_HISTO_MIN_PCT;
         continue;
       case 't':
         options.timing_detail = true;
@@ -512,6 +519,8 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         cout << "     (real) 24h time distribution bucket" << endl;
         cout << "  -d minimum" << endl;
         cout << "     (real) specify a slow threshold filter in seconds" << endl;
+        cout << "  -p minimum" << endl;
+        cout << "     only show histogram buckets with %probe larger than this value" << endl;
         cout << "  -t" << endl;
         cout << "     include a full list of slow probes" << endl;
         cout << "  -T minutes" << endl;
