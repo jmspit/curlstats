@@ -471,43 +471,43 @@ void summary() {
   cout << setw(8) << "avg";
   cout << setw(8) << "stddev";
   cout << setw(8) << "%rtrip";
-  cout << setw(22) << "stability";
+  cout << setw(22) << "monotonicity";
   cout << endl;
   cout << setw(5) << waitClass2String( wcDNS ) << " "
        << FIXED3W7 << (double)slow_map[wcDNS].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.namelookup.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.namelookup.total / globalstats.total_time * 100.0
-       << setw(22) << globalstats.wait_class_stats.namelookup.stability(global_avg_response)
+       << setw(22) << globalstats.wait_class_stats.namelookup.monotonicity(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcTCPHandshake ) << " "
        << FIXED3W7 << (double)slow_map[wcTCPHandshake].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.connect.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.connect.total / globalstats.total_time * 100.0
-       << setw(22) << globalstats.wait_class_stats.connect.stability(global_avg_response)
+       << setw(22) << globalstats.wait_class_stats.connect.monotonicity(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcSSLHandshake ) << " "
        << FIXED3W7 << (double)slow_map[wcSSLHandshake].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.appconnect.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.appconnect.total / globalstats.total_time * 100.0
-       << setw(22) << globalstats.wait_class_stats.appconnect.stability(global_avg_response)
+       << setw(22) << globalstats.wait_class_stats.appconnect.monotonicity(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcSendStart ) << " "
        << FIXED3W7 << (double)slow_map[wcSendStart].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.pretransfer.asString(true) << " "
        << FIXEDPCT<< globalstats.wait_class_stats.pretransfer.total / globalstats.total_time * 100.0
-       << setw(22) << globalstats.wait_class_stats.pretransfer.stability(global_avg_response)
+       << setw(22) << globalstats.wait_class_stats.pretransfer.monotonicity(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcWaitEnd ) << " "
        << FIXED3W7 << (double)slow_map[wcWaitEnd].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.starttransfer.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.starttransfer.total / globalstats.total_time * 100.0
-       << setw(22) << globalstats.wait_class_stats.starttransfer.stability(global_avg_response)
+       << setw(22) << globalstats.wait_class_stats.starttransfer.monotonicity(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcReceiveEnd ) << " "
        << FIXED3W7 << (double)slow_map[wcReceiveEnd].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.endtransfer.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.endtransfer.total / globalstats.total_time * 100.0
-       << setw(22) << globalstats.wait_class_stats.endtransfer.stability(global_avg_response)
+       << setw(22) << globalstats.wait_class_stats.endtransfer.monotonicity(global_avg_response)
        <<  endl;
 }
 

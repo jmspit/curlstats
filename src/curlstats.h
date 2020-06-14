@@ -86,7 +86,7 @@ struct QtyStats {
     return ss.str();
   }
 
-  string stability( double relate ) {
+  string monotonicity( double relate ) {
     double ratio = 1000;
     if ( getSigma() > 0.0 ) ratio = 2.5 * min / getSigma();
     stringstream ss;
