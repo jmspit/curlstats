@@ -1,10 +1,13 @@
+# mandatory - must specify
 url https://www.gnu.org
+request GET
+
+# customize
 connect-timeout 10
 max-time 10
 header "Accept: text/html"
-request GET
+
+# leave alone
 silent
 output /dev/null
-
-# this must be left alone otherwise the curlstats parsing will fail to recognize the data
 write-out "%{http_connect};%{http_code};%{ssl_verify_result};%{time_total};%{time_namelookup};%{time_connect};%{time_appconnect};%{time_pretransfer};%{time_redirect};%{time_starttransfer}"
