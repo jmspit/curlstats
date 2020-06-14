@@ -188,15 +188,12 @@ The generate statistics, copy and edit the [curl_config.example](src/curl_config
 url https://www.gnu.org
 connect-timeout 10
 max-time 10
-header "Content-type: application/json"
-#header "Accept: application/json"
+header "Accept: text/html"
 request GET
-
-# leave as is
 silent
 output /dev/null
 
-# leave as is otherwise the curlstats parsing will fail to recognize the data
+# this must be left alone otherwise the curlstats parsing will fail to recognize the data
 write-out "%{http_connect};%{http_code};%{ssl_verify_result};%{time_total};%{time_namelookup};%{time_connect};%{time_appconnect};%{time_pretransfer};%{time_redirect};%{time_starttransfer}"
 ```
 
