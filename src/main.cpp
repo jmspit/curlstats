@@ -347,8 +347,8 @@ void summary() {
   }
 
   heading( "Global stats" );
-  cout << "first data point     : " << time_t2String( globalstats.first_time ) << endl;
-  cout << "last  data point     : " << time_t2String( globalstats.last_time )  << endl;
+  cout << "first probe          : " << time_t2String( globalstats.first_time ) << endl;
+  cout << "last  probe          : " << time_t2String( globalstats.last_time )  << endl;
   cout << "#probes              : " << globalstats.items << endl;
   cout << "#slow probes         : " << globalstats.items_slow << endl;
   cout << "%slow probes         : " << FIXED3 << (double)globalstats.items_slow/(double)globalstats.items*100.0 << endl;
