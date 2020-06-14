@@ -17,6 +17,8 @@ using namespace std;
 #define DEFAULT_TIMING_DETAIL false
 #define DEFAULT_HISTO_MIN_PCT 0.0
 
+#define MINIMUM_PROBES 10
+
 /**
  * Options passed through command line.
  */

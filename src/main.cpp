@@ -481,16 +481,18 @@ void summary_global_stats() {
  */
 void summary() {
   summary_options();
-  summary_qos();
-  if ( globalstats.items_slow > 0 ) {
-    summary_wait_class();
-    summary_slow_probes_to_dow();
-    summary_slow_probes_to_daily();
-  }
-  summary_curl_errors();
-  summary_http_errors();
-  summary_daily_history();
-  summary_global_stats();
+  if ( globalstats.items >= MINIMUM_PROBES ) {
+    summary_qos();
+    if ( globalstats.items_slow > 0 ) {
+      summary_wait_class();
+      summary_slow_probes_to_dow();
+      summary_slow_probes_to_daily();
+    }
+    summary_curl_errors();
+    summary_http_errors();
+    summary_daily_history();
+    summary_global_stats();
+  } else cout << "not enough samples - at least " << MINIMUM_PROBES << " probes required" << endl;
 }
 
 /**
