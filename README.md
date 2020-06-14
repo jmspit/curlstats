@@ -201,7 +201,7 @@ using the config file the probing can be started with a 10 second interval
 
 ```
 $ src/curl_http_timing.sh src/curl_config.example 10 | tee data/gnu.org.dat
-# probing resumes = 2020-06-14 23:31:09
+# probing resumes = 2020-06-15 00:10:03
 # client FQDN     = snaak.no-ip.org
 # client kernel   = 5.4.38-gentoo
 # client OS       = Gentoo/Linux
@@ -211,17 +211,22 @@ $ src/curl_http_timing.sh src/curl_config.example 10 | tee data/gnu.org.dat
 # curl            = Protocols: dict file ftp ftps http https imap imaps ldap ldaps pop3 pop3s rtsp smtp smtps tftp
 # curl            = Features: AsynchDNS HTTPS-proxy IPv6 Largefile libz NTLM SSL TLS-SRP UnixSockets
 # curl config     = url https://www.gnu.org
+# curl config     = request GET
 # curl config     = connect-timeout 10
 # curl config     = max-time 10
 # curl config     = header "Accept: text/html"
-# curl config     = request GET
 # curl config     = silent
-# curl config     = output /dev/null
-# curl config     = write-out "%{http_connect};%{http_code};%{ssl_verify_result};%{time_total};%{time_namelookup};%{time_connect};%{time_appconnect};%{time_pretransfer};%{time_redirect};%{time_starttransfer}"
 # YYYY HH:MI:SS ; curl error ; http connect code ; http response code ; ssl verify result ; total_time ; dns lookup ; tcp handshake ; ssl handshake ; dns lookup+tcp+ssl handshake; redirect time; time to first byte sent
-2020-06-14 23:31:09;0;000;200;0;0.529098;0.000371;0.086848;0.268069;0.268094;0.000000;0.356516
-2020-06-14 23:31:20;0;000;200;0;0.620587;0.000439;0.114124;0.338221;0.338248;0.000000;0.440422
-2020-06-14 23:31:30;0;000;200;0;0.561608;0.000395;0.092362;0.283801;0.283827;0.000000;0.377165
+2020-06-15 00:10:03;0;000;200;0;0.744491;0.000352;0.092665;0.284233;0.284257;0.000000;0.377898
+2020-06-15 00:10:14;0;000;200;0;0.736170;0.000621;0.091463;0.280857;0.280884;0.000000;0.374935
+2020-06-15 00:10:25;0;000;200;0;0.713518;0.000461;0.088908;0.273343;0.273368;0.000000;0.363101
+2020-06-15 00:10:35;0;000;200;0;0.690696;0.000499;0.085627;0.263239;0.263264;0.000000;0.350330
+2020-06-15 00:10:46;0;000;200;0;0.746183;0.000426;0.092519;0.284151;0.284176;0.000000;0.378483
+2020-06-15 00:10:57;0;000;200;0;0.739484;0.000386;0.091974;0.280912;0.280955;0.000000;0.373567
+2020-06-15 00:11:07;0;000;200;0;0.743964;0.000484;0.092424;0.283790;0.283815;0.000000;0.377248
+2020-06-15 00:11:18;0;000;200;0;0.717048;0.000441;0.088519;0.273302;0.273336;0.000000;0.366548
+2020-06-15 00:11:29;0;000;200;0;0.739107;0.000468;0.091706;0.281908;0.281933;0.000000;0.375991
+2020-06-15 00:11:40;0;000;200;0;0.721408;0.000438;0.089917;0.276119;0.276145;0.000000;0.366683
 ```
 
 The data (in the above case tee-ed to data/gnu.org.dat) can be parsed and analyzed by curlstats:
