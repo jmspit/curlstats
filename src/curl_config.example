@@ -1,8 +1,7 @@
 url https://www.gnu.org
 connect-timeout 10
 max-time 10
-header "Content-type: application/json"
-#header "Accept: application/json"
+header "Accept: text/html"
 request GET
 silent
 output /dev/null

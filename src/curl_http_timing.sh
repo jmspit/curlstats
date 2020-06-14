@@ -51,7 +51,6 @@ if [ -f /etc/os-release ]; then
   ${ECHO_EXEC} "# client OS       = $(${GREP_EXEC} ^PRETTY_NAME /etc/os-release | ${AWK_EXEC} -F\" '{print $2}')"
 fi
 ${ECHO_EXEC} "# client IP       = $(${IP_EXEC} route get 1 | ${AWK_EXEC} '{print $(NF-2);exit}')"
-${ECHO_EXEC} "# extra args      = ${extra_args}"
 ${CURL_EXEC} --version | while read LINE
 do
   ${ECHO_EXEC} "# curl            = ${LINE}"
