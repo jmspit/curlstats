@@ -210,7 +210,7 @@ access latency. DNS timeouts should not occur at all.*
 ### TCP Handshake (TCP)
 
 The TCP layer performs a handshake to establish a connection. This is almost entirely bound by network latency (in
-absence of socket allocation problems). A TCP involves a three-way handshake, the handshake (3 sends) latency is
+absence of socket allocation problems). TCP uses a three-way handshake, the handshake (3 sends) latency is
 1.5 times the network latency (2 sends) - so a rough estimate of the network latency can be deduced from the TCP
 handshake latency.
 
