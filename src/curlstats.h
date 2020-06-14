@@ -91,14 +91,14 @@ struct QtyStats {
     if ( getSigma() > 0.0 ) ratio = 2.5 * min / getSigma();
     stringstream ss;
     if ( getAverage() / relate  >= 0.01 ) {
-      if ( ratio < 0.005 ) ss << "abysmal";
+      if ( ratio < 0.01 ) ss << "abysmal";
       else if ( ratio < 0.05 ) ss << "awful";
       else if ( ratio < 0.1 ) ss << "bad";
-      else if ( ratio < 0.3 ) ss << "poor";
-      else if ( ratio < 0.7 ) ss << "mediocre";
-      else if ( ratio < 1.5 ) ss << "fair";
+      else if ( ratio < 0.2 ) ss << "poor";
+      else if ( ratio < 0.3 ) ss << "mediocre";
+      else if ( ratio < 1.2 ) ss << "fair";
       else if ( ratio < 3.0 ) ss << "good";
-      else if ( ratio < 6.0 ) ss << "excellent";
+      else if ( ratio < 10.0 ) ss << "excellent";
       else ss << "phenomenal";
     } else {
       ss << "n/a";
