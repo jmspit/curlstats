@@ -234,7 +234,7 @@ void summary() {
   cout << "Slowness threshold             : " << FIXED3W7 << options.min_duration << " seconds" << endl;
   cout << "Response time histogram bucket : " << FIXED3W7 << options.time_bucket << " seconds" << endl;
   cout << "repeating 24h histogram bucket : " << FIXED3W7 << options.day_bucket << " minutes" << endl;
-  cout << "histogram minimum display pct  : " << FIXED3W7 << options.histo_min_pct << "%" << endl;
+  cout << "histogram minimum display pct  : " << FIXED3W7 << options.histo_min_pct << " %" << endl;
   cout << "Show trail of slow probes      : " << FIXED3W7 << options.timing_detail << endl;
 
   if ( options.timing_detail ) {
