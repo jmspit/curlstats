@@ -56,7 +56,8 @@ do
   ${ECHO_EXEC} "# curl            = ${LINE}"
 done
 
-${GREP_EXEC} -v "^#" "${config}" | ${GREP_EXEC} -v "^$" | while read LINE
+${GREP_EXEC} -v "^#" "${config}" | ${GREP_EXEC} -v "^$" | ${GREP_EXEC} -v "^write-out" |
+${GREP_EXEC} -v "^output" | while read LINE
 do
     ${ECHO_EXEC} "# curl config     = ${LINE}"
 done
