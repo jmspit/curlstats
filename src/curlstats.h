@@ -289,6 +289,11 @@ struct GlobalStats {
    * The time of the last probe seen.
    */
   time_t last_time;
+
+  /**
+   * A list of findings.
+   */
+  list<string> findings;
 };
 
 /**

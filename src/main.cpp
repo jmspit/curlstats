@@ -478,17 +478,16 @@ void summary_global_stats() {
 
 
 void summary_abnormal() {
-  list<string> abnormal;
   if ( globalstats.wait_class_stats.namelookup.getAverage() > 2.0 * globalstats.wait_class_stats.connect.getAverage() ) {
-    abnormal.push_back( "DNS is slow compared to TCP" );
+    globalstats.findings.push_back( "DNS is slow compared to TCP" );
   }
-  if ( globalstats.wait_class_stats.appconnect.getAverage() > 9.0 * globalstats.wait_class_stats.connect.getAverage() ) {
-    abnormal.push_back( "TLS to TCP suggest TLS is expensive" );
+  if ( globalstats.wait_class_stats.appconnect.getAverage() > 14.0 * globalstats.wait_class_stats.connect.getAverage() ) {
+    globalstats.findings.push_back( "TLS is expensive compared to TCP" );
   }
-  if ( abnormal.size() > 0 ) {
+  if ( globalstats.findings.size() > 0 ) {
     heading( "Abnormal" );
-    for ( auto a : abnormal ) {
-      cout << "  " << a << endl;
+    for ( auto f : globalstats.findings ) {
+      cout << "  - " << f << endl;
     }
   }
 }
