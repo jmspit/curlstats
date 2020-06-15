@@ -476,6 +476,23 @@ void summary_global_stats() {
        <<  endl;
 }
 
+
+void summary_abnormal() {
+  list<string> abnormal;
+  if ( globalstats.wait_class_stats.namelookup.getAverage() > 2.0 * globalstats.wait_class_stats.connect.getAverage() ) {
+    abnormal.push_back( "DNS is slow compared to TCP" );
+  }
+  if ( globalstats.wait_class_stats.appconnect.getAverage() > 9.0 * globalstats.wait_class_stats.connect.getAverage() ) {
+    abnormal.push_back( "TLS to TCP suggest TLS is expensive" );
+  }
+  if ( abnormal.size() > 0 ) {
+    heading( "Abnormal" );
+    for ( auto a : abnormal ) {
+      cout << "  " << a << endl;
+    }
+  }
+}
+
 /**
  * Write summary.
  */
@@ -492,6 +509,7 @@ void summary() {
     summary_http_errors();
     summary_daily_history();
     summary_global_stats();
+    summary_abnormal();
   } else cout << "not enough samples - at least " << MINIMUM_PROBES << " probes required" << endl;
 }
 

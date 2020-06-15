@@ -342,23 +342,24 @@ output has a DNS timeout set to 3 seconds - and DNS timeouts are causing the sec
 ### Global statistics
 
 ```
-============================================================================
+===========================================================================
 Global stats
-============================================================================
-first probe          : 2020-06-13 01:01:01
-last  probe          : 2020-06-14 08:46:34
-#probes              : 10587
-#slow probes         : 242
-%slow probes         : 2.286
-average response time: 0.331s
-optimal response time: 0.208s
-estimate network RTT : 19.090ms
-class   %slow     min     max     avg  stddev  %rtrip             stability
-  DNS   0.472   0.025   9.023   0.047   0.281   14.36         bad (  0.088)
-  TCP   0.009   0.023   1.026   0.029   0.011    8.66        good (  2.175)
-  TLS   0.170   0.134   0.788   0.184   0.040   55.54   excellent (  3.349)
-  REQ   0.000   0.000   0.022   0.000   0.001    0.11         n/a (  0.051)
-  RSP   1.634   0.026  16.865   0.070   0.328   21.25         bad (  0.078)
-  DAT   0.000   0.000   0.021   0.000   0.001    0.08         n/a (  0.009)
+===========================================================================
+first probe          : 2020-06-13 08:56:31
+last  probe          : 2020-06-15 00:13:59
+#probes              : 13210
+#slow probes         : 812
+%slow probes         : 6.147
+average response time: 0.522s
+ideal response time  : 0.209s
+estimate network RTT : 18.884ms
+class   %slow     min     max     avg  stddev  %rtrip          monotonicity
+  DNS   3.702   0.025   9.073   0.149   0.609   28.61        poor (  0.104)
+  TCP   0.000   0.024   1.029   0.028   0.013    5.43   excellent (  4.503)
+  TLS   0.000   0.134   1.105   0.182   0.039   34.82   excellent (  8.600)
+  REQ   0.000   0.000   0.015   0.000   0.001    0.07         n/a (  0.000)
+  RSP   2.445   0.026  11.208   0.162   0.756   31.03         bad (  0.086)
+  DAT   0.000   0.000   0.021   0.000   0.001    0.05         n/a (  0.025)
+
 ```
 
