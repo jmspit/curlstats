@@ -589,10 +589,10 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         cout << endl;
         cout << "usage: " << endl;
         cout << "  -b seconds" << endl;
-        cout << "     (real) response time histogram bucket in seconds" << endl;
+        cout << "     (real) response time histogram bucket in seconds (-o histo)" << endl;
         cout << "     default: " << DEFAULT_TIME_BUCKET << endl;
-        cout << "  -d minimum" << endl;
-        cout << "     (real) specify a slow threshold filter in seconds" << endl;
+        cout << "  -d threshold" << endl;
+        cout << "     (real) specify a slow threshold in seconds" << endl;
         cout << "     default: " << DEFAULT_MIN_DURATION << endl;
         cout << "  -o option" << endl;
         cout << "     limit the output, multiple options can be given by repeating -o" << endl;
@@ -609,11 +609,11 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         cout << "       wdmap      : show weekday map of all probes" << endl;
         cout << "       wdslowmap  : show weekday map of slow probes" << endl;
         cout << "     default: 'all'"<< endl;
-        cout << "  -p minimum" << endl;
-        cout << "     only show histogram buckets with % total probes larger than this value" << endl;
+        cout << "  -p threshold" << endl;
+        cout << "     only show histogram buckets with % total probes larger than this value (-o histo)" << endl;
         cout << "     default: " << DEFAULT_HISTO_MIN_PCT << endl;
         cout << "  -T minutes" << endl;
-        cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 )" << endl;
+        cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 ) (-o 24hmap, 24hslowmap)" << endl;
         cout << "     default: " << DEFAULT_DAY_BUCKET << endl;
         cout << endl;
         cout << waitClass2String( wcDNS, true )  << endl;

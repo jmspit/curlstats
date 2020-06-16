@@ -96,10 +96,10 @@ see https://github.com/jmspit/curlstats
 
 usage:
   -b seconds
-     (real) response time histogram bucket in seconds
+     (real) response time histogram bucket in seconds (-o histo)
      default: 0.2
-  -d minimum
-     (real) specify a slow threshold filter in seconds
+  -d threshold
+     (real) specify a slow threshold in seconds
      default: 1
   -o option
      limit the output, multiple options can be given by repeating -o
@@ -116,11 +116,11 @@ usage:
        wdmap      : show weekday map of all probes
        wdslowmap  : show weekday map of slow probes
      default: 'all'
-  -p minimum
-     only show histogram buckets with % total probes larger than this value
+  -p threshold
+     only show histogram buckets with % total probes larger than this value (-o histo)
      default: 0
   -T minutes
-     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 )
+     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 ) (-o 24hmap, 24hslowmap)
      default: 30
 ```
 
