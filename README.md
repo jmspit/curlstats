@@ -97,10 +97,10 @@ see https://github.com/jmspit/curlstats
 usage:
   -b seconds
      (real) response time histogram bucket in seconds (-o histo)
-     default: 0.2
+     default: 0.2 seconds
   -d threshold
      (real) specify a slow threshold in seconds
-     default: 1
+     default: 1 seconds
   -o option
      limit the output, multiple options can be given by repeating -o
        24hmap     : show 24h map of all probes
@@ -118,10 +118,10 @@ usage:
      default: 'all'
   -p threshold
      only show histogram buckets with % total probes larger than this value (-o histo)
-     default: 0
+     default: 0 %
   -T minutes
      (uint) 24 hour time bucket in minutes ( 0 < x <= 60 ) (-o 24hmap, 24hslowmap)
-     default: 30
+     default: 30 minutes
 ```
 
 
