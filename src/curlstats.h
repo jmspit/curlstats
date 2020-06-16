@@ -70,7 +70,7 @@ struct Options {
 
   string slowString() const {
     stringstream ss;
-    ss << "<" << FIXED3 << min_duration << "s";
+    ss << ">" << FIXED3 << min_duration << "s";
     return ss.str();
   }
 };

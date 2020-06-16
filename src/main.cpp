@@ -497,12 +497,12 @@ void summary_daily_history() {
 }
 
 void summary_global_stats() {
-  heading( "Global stats" );
+  heading( "Global stats (slow is " + options.slowString() + ")" );
   cout << "first probe          : " << time_t2String( globalstats.first_time ) << endl;
   cout << "last  probe          : " << time_t2String( globalstats.last_time )  << endl;
   cout << "#probes              : " << globalstats.items << endl;
   cout << "#slow probes         : " << globalstats.items_slow;
-  cout << " (" << FIXED3 << (double)globalstats.items_slow/(double)globalstats.items*100.0 << "%)" << endl;
+  cout << " (QoS " << FIXED3 << (1.0-(double)globalstats.items_slow/(double)globalstats.items)*100.0 << "%)" << endl;
   double global_avg_response = globalstats.total_time / globalstats.items;
   double global_opt_response = globalstats.wait_class_stats.getOptimalResponse();
 

@@ -90,7 +90,7 @@ cat data/gnu.org.dat | curlstats
 curlstats provides several command line options to tweak its behavior
 
 ```
-$ ./build/curlstats -h
+$ curlstats -h
 reads from standard input
 see https://github.com/jmspit/curlstats
 
@@ -277,7 +277,7 @@ the source the probes were taken from, the curl options in effect - which in tur
 To extract the comments from the data:
 
 ```
-$ cat data/gnu.org.dat | ./build/curlstats -o comments
+$ cat data/gnu.org.dat | curlstats -o comments
 ```
 
 
@@ -310,7 +310,7 @@ Note that the curl config options from the config file are included, except the 
 To output the options in effect when interpreting the probes.
 
 ```
-$ cat data/gnu.org.dat | ./build/curlstats -o options
+$ cat data/gnu.org.dat | curlstats -o options
 
 ========================================================================================================================
 Options in effect
@@ -333,7 +333,7 @@ the make-up of the standard deviation.
 To output histograms on the total round trip time as well as individual wait classes.
 
 ```
-$ cat data/gnu.org.dat | ./build/curlstats -o histo
+$ cat data/gnu.org.dat | curlstats -o histo
 
 ========================================================================================================================
 QoS
@@ -411,7 +411,7 @@ output has a DNS timeout set to 3 seconds - and DNS timeouts are causing the sec
 Outputs a histogram of slow probes to wait classes.
 
 ```
-$ cat data/gnu.org.dat | ./build/curlstats -o slowwait
+$ cat data/gnu.org.dat | curlstats -o slowwait
 
 ========================================================================================================================
 Slow (<1.000s) probe to wait-class distribution
@@ -431,7 +431,7 @@ Output a 24h hour map bucketed over only the time-of-day part of a particular pr
 recurring daily patterns.
 
 ```
-$ cat data/snaak_knmi.dat.old | ./build/curlstats -o 24hmap -T 60
+$ cat data/snaak_knmi.dat.old | curlstats -o 24hmap -T 60
 
 ================================================================================================================================================================================
 All probes to daily time bucket distribution
@@ -470,27 +470,39 @@ The `most` column show the wait class that contributed most to the response time
 
 Output a weekday map bucketed over the day-of-week of the probes, useful in detecting weekly patterns.
 
+```
+$ cat data/snaak_knmi.dat.old | curlstats -o wdmap
+
+================================================================================================================================================================================
+All probes to day-of-week distribution
+================================================================================================================================================================================
+      day  %slow     avg  most ----------DNS---------- ----------TCP---------- ----------TLS---------- ----------REQ---------- ----------RSP---------- ----------DAT----------
+   Sunday   0.07   0.029   TLS   0.000   0.032   0.001   0.004   1.580   0.006   0.015   1.370   0.018   0.000   0.000   0.000   0.003   1.004   0.005   0.000   0.004   0.000
+   Monday   0.06   0.030   TLS   0.000   0.031   0.001   0.004   1.506   0.007   0.015   1.026   0.018   0.000   0.000   0.000   0.003   0.267   0.005   0.000   0.005   0.000
+  Tuesday   4.19   0.076   TLS   0.000   0.031   0.001   0.004   3.274   0.007   0.015   3.024   0.060   0.000   0.000   0.000   0.003   1.033   0.008   0.000   0.005   0.000
+ Saturday   0.02   0.028   TLS   0.000   0.029   0.001   0.004   0.502   0.006   0.015   1.018   0.017   0.000   0.000   0.000   0.003   0.267   0.005   0.000   0.001   0.000
+```
+
 ### Global statistics
 
 ```
 ===========================================================================
-Global stats
+Global stats (slow is >1.000s)
 ===========================================================================
-first probe          : 2020-06-13 08:56:31
-last  probe          : 2020-06-15 00:13:59
-#probes              : 13210
-#slow probes         : 812
-%slow probes         : 6.147
-average response time: 0.522s
-ideal response time  : 0.209s
-estimate network RTT : 18.884ms
-class   %slow     min     max     avg  stddev  %rtrip          monotonicity
-  DNS   3.702   0.025   9.073   0.149   0.609   28.61        poor (  0.104)
-  TCP   0.000   0.024   1.029   0.028   0.013    5.43   excellent (  4.503)
-  TLS   0.000   0.134   1.105   0.182   0.039   34.82   excellent (  8.600)
-  REQ   0.000   0.000   0.015   0.000   0.001    0.07         n/a (  0.000)
-  RSP   2.445   0.026  11.208   0.162   0.756   31.03         bad (  0.086)
-  DAT   0.000   0.000   0.021   0.000   0.001    0.05         n/a (  0.025)
+first probe          : 2020-06-13 12:45:45
+last  probe          : 2020-06-16 20:18:31
+#probes              : 28509
+#slow probes         : 316 (QoS 98.892%)
+average response time: 0.041s (excellent)
+ideal response time  : 0.023s
+estimate network RTT : 4.306ms
+class   %slow     min     max     avg  stddev  %rtrip  consistency
+  DNS   0.000   0.000   0.032   0.001   0.001    1.30         fair
+  TCP   0.021   0.004   3.274   0.006   0.035   15.75     mediocre
+  TLS   1.024   0.015   3.024   0.028   0.113   69.21         fair
+  REQ   0.000   0.000   0.000   0.000   0.000    0.05          n/a
+  RSP   0.063   0.003   1.033   0.006   0.028   13.56     mediocre
+  DAT   0.000   0.000   0.005   0.000   0.000    0.12          n/a
 
 ```
 
