@@ -20,12 +20,12 @@
 
 # curlstats
 
-Generates, parses and analyzes curl timing statistics supported endpoints. The
-[curl_http_timing.sh](src/curl_http_timing.sh) generates probes from the source it is running on. `curlstats` can be
+Generates, parses and analyzes curl timing statistics against supported endpoints. The
+[curl_http_timing.sh](src/curl_http_timing.sh) generates probes from the host it is running on. `curlstats` can be
 presented that data for processing (and can be run anywhere).
 
 The [curl_http_timing.sh](src/curl_http_timing.sh) script requires bash and curl to generate timed probes. The probed
-endpoit is specified through a configuration file. The [curl_config.example](src/curl_config.example) file can be
+endpoint is specified through a configuration file. The [curl_config.example](src/curl_config.example) file can be
 taken as an example. Be sure to leave the `write-out` configuration option intact as the parsing by curlstats depends
 on that format.
 
@@ -427,8 +427,8 @@ the wait class contributing most to the slowness.
 
 ### 24 hour probe map
 
-Output a 24h hour map bucketed over only the time-of-day part of a particular probe, useful in detecting
-recurring daily patterns.
+Output a 24h hour map bucketed over only the time-of-day part of probes, useful in detecting
+recurring daily patterns. The `-T` option may be used to adjust the default bucket size of 30 minutes.
 
 ```
 $ cat data/snaak_knmi.dat.old | curlstats -o 24hmap -T 60
@@ -465,6 +465,18 @@ hh:mm  %slow     avg  most ----------DNS---------- ----------TCP---------- -----
 ```
 
 The `most` column show the wait class that contributed most to the response time.
+
+### 24 hour slow probe map
+
+Output a 24h hour map bucketed over only the time-of-day part of slow probes, useful in detecting
+recurring daily patterns. The `-T` option may be used to adjust the default bucket size of 30 minutes.
+
+Out is exactly like `24hmap` except that the `most` column is called `blame` here (as slow already is a moral
+judgement).
+
+```
+$ cat data/snaak_knmi.dat.old | ./build/curlstats -o 24hslowmap
+```
 
 ### Weekday probe map
 

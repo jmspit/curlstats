@@ -375,7 +375,7 @@ void summary_all_probes_to_dow() {
 }
 
 void summary_slow_probes_to_daily() {
-  heading( "Slow probe to daily time bucket distribution" );
+  heading( "Slow (" + options.slowString() + ") probe to daily time bucket distribution" );
   cout << "truncated to " << options.day_bucket << " minute buckets, per waitclass min max avg" << endl;
   cout << setw(4) << "hh:mm";
   cout << setw(7) << "%slow";
