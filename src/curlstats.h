@@ -2,6 +2,7 @@
 #define curlstats_h
 
 #include <string>
+#include <bitset>
 
 using namespace std;
 
@@ -19,21 +20,77 @@ using namespace std;
 
 #define MINIMUM_PROBES 10
 
+enum OutputMode : unsigned long {
+  omNone                 = 0b0000000000000000, /**< Output nothing */
+  omAll                  = 0b0000000000000001, /**< Output everything 'all'*/
+  omSlowTrail            = 0b0000000000000010, /**< Output a trail of slow probes 'slowtrail' */
+  omHistograms           = 0b0000000000000100, /**< Output wait class histograms 'histo' */
+  omDailyTrail           = 0b0000000000001000, /**< Output the daily trail 'daytrail'*/
+  om24hMap               = 0b0000000000010000, /**< Output the 24h map '24hmap' */
+  omWeekdayMap           = 0b0000000000100000, /**< Output the Weekday map 'wdmap'  */
+  om24hSlowMap           = 0b0000000001000000, /**< Output the 24h slow map '24hslowmap' */
+  omWeekdaySlowMap       = 0b0000000010000000, /**< Output the Weekday slow map 'wdslowmap' */
+  omErrors               = 0b0000000100000000, /**< Output trail of errors 'errortrail' */
+  omGlobal               = 0b0000001000000000, /**< Output global stats 'global' */
+  omOptions              = 0b0000010000000000, /**< Output options 'options' */
+  omComments             = 0b0000100000000000, /**< Output comments 'comments' */
+  omSlowWaitClass        = 0b0001000000000000, /**< Output comments 'slowwait' */
+};
+
+inline OutputMode operator|( OutputMode a, OutputMode b ) {
+  return static_cast<OutputMode>(static_cast<unsigned long>(a) | static_cast<unsigned long>(b));
+}
+
+inline OutputMode& operator|=( OutputMode &a, OutputMode b ) {
+  a = static_cast<OutputMode>(static_cast<unsigned long>(a) | static_cast<unsigned long>(b));
+  return a;
+}
+
 /**
  * Options passed through command line.
  */
 struct Options {
-  Options() : timing_detail(DEFAULT_TIMING_DETAIL),
-              time_bucket(DEFAULT_TIME_BUCKET),
+  Options() : time_bucket(DEFAULT_TIME_BUCKET),
               day_bucket(DEFAULT_DAY_BUCKET),
               min_duration(DEFAULT_MIN_DURATION),
-              histo_min_pct(DEFAULT_HISTO_MIN_PCT) {};
-  bool   timing_detail;
-  double time_bucket;
-  int    day_bucket;
-  double min_duration;
-  double histo_min_pct;
+              histo_min_pct(DEFAULT_HISTO_MIN_PCT),
+              output_mode(omNone) {};
+  double     time_bucket;
+  int        day_bucket;
+  double     min_duration;
+  double     histo_min_pct;
+  OutputMode output_mode;
+
+  bool hasMode( OutputMode mode ) {
+    unsigned long t = static_cast<unsigned long>(output_mode);
+    unsigned long m = static_cast<unsigned long>(mode);
+    return ((t & m) || (t & omAll));
+  }
 };
+
+
+string consistencyVerdict( double avg, double sdev, double relate ) {
+  double ratio = 1000;
+  if ( sdev > 0.0 ) ratio = 2.5 * avg / sdev;
+  stringstream ss;
+  if ( avg / relate  >= 0.01 ) {
+    if ( ratio < 0.04 ) ss << "abysmal";
+    else if ( ratio < 0.08 ) ss << "awful";
+    else if ( ratio < 0.1 ) ss << "bad";
+    else if ( ratio < 0.2 ) ss << "poor";
+    else if ( ratio < 0.3 ) ss << "mediocre";
+    else if ( ratio < 1.2 ) ss << "fair";
+    else if ( ratio < 2.5 ) ss << "good";
+    else if ( ratio < 10.0 ) ss << "excellent";
+    else ss << "phenomenal";
+  } else {
+    ss << "n/a";
+  }
+  //ss << " (";
+  //ss << FIXED3W7 << ratio;
+  //ss << ")";
+  return ss.str();
+}
 
 /**
  * To assemble statistics
@@ -88,27 +145,8 @@ struct QtyStats {
     return ss.str();
   }
 
-  string monotonicity( double relate ) {
-    double ratio = 1000;
-    if ( getSigma() > 0.0 ) ratio = 2.5 * min / getSigma();
-    stringstream ss;
-    if ( getAverage() / relate  >= 0.01 ) {
-      if ( ratio < 0.01 ) ss << "abysmal";
-      else if ( ratio < 0.05 ) ss << "awful";
-      else if ( ratio < 0.1 ) ss << "bad";
-      else if ( ratio < 0.2 ) ss << "poor";
-      else if ( ratio < 0.3 ) ss << "mediocre";
-      else if ( ratio < 1.2 ) ss << "fair";
-      else if ( ratio < 2.5 ) ss << "good";
-      else if ( ratio < 10.0 ) ss << "excellent";
-      else ss << "phenomenal";
-    } else {
-      ss << "n/a";
-    }
-    ss << " (";
-    ss << FIXED3W7 << ratio;
-    ss << ")";
-    return ss.str();
+  string consistency( double relate ) {
+    return consistencyVerdict( min, getSigma(), relate );
   }
 
   double getAverage() const {
@@ -495,9 +533,10 @@ struct CURL {
  * Parse command line arguments.
  */
 bool parseArgs( int argc, char* argv[], Options &options ) {
+  string mode = "";
   for(;;)
   {
-    switch( getopt(argc, argv, "d:tb:T:p:h") ) // note the colon (:) to indicate that 'b' has a parameter and is not a switch
+    switch( getopt(argc, argv, "d:tb:T:p:o:h") ) // note the colon (:) to indicate that 'b' has a parameter and is not a switch
     {
       case 'b':
         options.time_bucket = stod( optarg );
@@ -506,12 +545,29 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         options.min_duration = stod( optarg );
         if ( options.min_duration == 0 ) options.min_duration = DEFAULT_MIN_DURATION;
         continue;
+      case 'o':
+        mode = optarg;
+        if ( mode == "all" ) options.output_mode |= omAll;
+        else if ( mode == "slowtrail" ) options.output_mode |= omSlowTrail;
+        else if ( mode == "histo" ) options.output_mode |= omHistograms;
+        else if ( mode == "daytrail" ) options.output_mode |= omDailyTrail;
+        else if ( mode == "24hmap" ) options.output_mode |= om24hMap;
+        else if ( mode == "wdmap" ) options.output_mode |= omWeekdayMap;
+        else if ( mode == "24hslowmap" ) options.output_mode |= om24hSlowMap;
+        else if ( mode == "wdslowmap" ) options.output_mode |= omWeekdaySlowMap;
+        else if ( mode == "errors" ) options.output_mode |= omErrors;
+        else if ( mode == "global" ) options.output_mode |= omGlobal;
+        else if ( mode == "options" ) options.output_mode |= omOptions;
+        else if ( mode == "comments" ) options.output_mode |= omComments;
+        else if ( mode == "slowwait" ) options.output_mode |= omSlowWaitClass;
+        else {
+          cerr << "unknown mode '" << mode << "'" << endl;
+          return false;
+        }
+        continue;
       case 'p':
         options.histo_min_pct = stod( optarg );
         if ( options.histo_min_pct > 10.0 ) options.histo_min_pct = DEFAULT_HISTO_MIN_PCT;
-        continue;
-      case 't':
-        options.timing_detail = true;
         continue;
       case 'T':
         options.day_bucket = stoi( optarg );
@@ -531,12 +587,24 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         cout << "  -d minimum" << endl;
         cout << "     (real) specify a slow threshold filter in seconds" << endl;
         cout << "     default: " << DEFAULT_MIN_DURATION << endl;
+        cout << "  -o option" << endl;
+        cout << "     limit the output, multiple options can be given by repeating -o" << endl;
+        cout << "       slowtrail  : trail of slow probes" << endl;
+        cout << "       histo      : show wait class histograms" << endl;
+        cout << "       daytrail   : show daily history of all probes" << endl;
+        cout << "       24hmap     : show 24h map of all probes" << endl;
+        cout << "       24hslowmap : show 24h map of slow probes" << endl;
+        cout << "       wdmap      : show weekday map of all probes" << endl;
+        cout << "       wdslowmap  : show weekday map of slow probes" << endl;
+        cout << "       errors     : show errors" << endl;
+        cout << "       global     : show global stats" << endl;
+        cout << "       options    : show options in effect" << endl;
+        cout << "       comments   : show comments from input" << endl;
+        cout << "       slowwait   : show waits class distribution of slow probes" << endl;
+        cout << "     default: 'all'"<< endl;
         cout << "  -p minimum" << endl;
         cout << "     only show histogram buckets with % total probes larger than this value" << endl;
         cout << "     default: " << DEFAULT_HISTO_MIN_PCT << endl;
-        cout << "  -t" << endl;
-        cout << "     include a full list of slow probes" << endl;
-        cout << "     default: false" << endl;
         cout << "  -T minutes" << endl;
         cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 )" << endl;
         cout << "     default: " << DEFAULT_DAY_BUCKET << endl;
@@ -699,6 +767,15 @@ string curlError2String( uint16_t code ) {
       break;
     case 35:
       ss << "CURLE_SSL_CONNECT_ERROR";
+      break;
+    case 52:
+      ss << "CURLE_GOT_NOTHING";
+      break;
+    case 55:
+      ss << "CURLE_SEND_ERROR";
+      break;
+    case 56:
+      ss << "CURLE_RECV_ERROR";
       break;
   }
   if ( ss.str().length() > 0 ) ss << " ";
