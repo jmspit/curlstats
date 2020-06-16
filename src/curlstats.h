@@ -18,7 +18,8 @@ using namespace std;
 #define DEFAULT_TIMING_DETAIL false
 #define DEFAULT_HISTO_MIN_PCT 0.0
 
-#define MINIMUM_PROBES 10
+//#define MINIMUM_PROBES 10
+#define MINIMUM_PROBES 1
 
 enum OutputMode : unsigned long {
   omNone                 = 0b0000000000000000, /**< Output nothing */
@@ -65,6 +66,12 @@ struct Options {
     unsigned long t = static_cast<unsigned long>(output_mode);
     unsigned long m = static_cast<unsigned long>(mode);
     return ((t & m) || (t & omAll));
+  }
+
+  string slowString() const {
+    stringstream ss;
+    ss << "<" << FIXED3 << min_duration << "s";
+    return ss.str();
   }
 };
 
@@ -548,18 +555,18 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
       case 'o':
         mode = optarg;
         if ( mode == "all" ) options.output_mode |= omAll;
-        else if ( mode == "slowtrail" ) options.output_mode |= omSlowTrail;
-        else if ( mode == "histo" ) options.output_mode |= omHistograms;
-        else if ( mode == "daytrail" ) options.output_mode |= omDailyTrail;
         else if ( mode == "24hmap" ) options.output_mode |= om24hMap;
-        else if ( mode == "wdmap" ) options.output_mode |= omWeekdayMap;
         else if ( mode == "24hslowmap" ) options.output_mode |= om24hSlowMap;
-        else if ( mode == "wdslowmap" ) options.output_mode |= omWeekdaySlowMap;
+        else if ( mode == "comments" ) options.output_mode |= omComments;
+        else if ( mode == "daytrail" ) options.output_mode |= omDailyTrail;
         else if ( mode == "errors" ) options.output_mode |= omErrors;
         else if ( mode == "global" ) options.output_mode |= omGlobal;
+        else if ( mode == "histo" ) options.output_mode |= omHistograms;
         else if ( mode == "options" ) options.output_mode |= omOptions;
-        else if ( mode == "comments" ) options.output_mode |= omComments;
+        else if ( mode == "slowtrail" ) options.output_mode |= omSlowTrail;
         else if ( mode == "slowwait" ) options.output_mode |= omSlowWaitClass;
+        else if ( mode == "wdmap" ) options.output_mode |= omWeekdayMap;
+        else if ( mode == "wdslowmap" ) options.output_mode |= omWeekdaySlowMap;
         else {
           cerr << "unknown mode '" << mode << "'" << endl;
           return false;
@@ -589,18 +596,18 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         cout << "     default: " << DEFAULT_MIN_DURATION << endl;
         cout << "  -o option" << endl;
         cout << "     limit the output, multiple options can be given by repeating -o" << endl;
-        cout << "       slowtrail  : trail of slow probes" << endl;
-        cout << "       histo      : show wait class histograms" << endl;
-        cout << "       daytrail   : show daily history of all probes" << endl;
         cout << "       24hmap     : show 24h map of all probes" << endl;
         cout << "       24hslowmap : show 24h map of slow probes" << endl;
-        cout << "       wdmap      : show weekday map of all probes" << endl;
-        cout << "       wdslowmap  : show weekday map of slow probes" << endl;
+        cout << "       comments   : show comments from input" << endl;
+        cout << "       daytrail   : show daily history of all probes" << endl;
         cout << "       errors     : show errors" << endl;
         cout << "       global     : show global stats" << endl;
+        cout << "       histo      : show wait class histograms" << endl;
         cout << "       options    : show options in effect" << endl;
-        cout << "       comments   : show comments from input" << endl;
+        cout << "       slowtrail  : trail of slow probes" << endl;
         cout << "       slowwait   : show waits class distribution of slow probes" << endl;
+        cout << "       wdmap      : show weekday map of all probes" << endl;
+        cout << "       wdslowmap  : show weekday map of slow probes" << endl;
         cout << "     default: 'all'"<< endl;
         cout << "  -p minimum" << endl;
         cout << "     only show histogram buckets with % total probes larger than this value" << endl;
@@ -621,6 +628,7 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
     }
     break;
   }
+  if ( options.output_mode == omNone ) options.output_mode = omAll;
   return true;
 }
 

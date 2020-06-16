@@ -45,6 +45,7 @@ findExecutable sleep SLEEP_EXEC
 findExecutable uname UNAME_EXEC
 
 ${ECHO_EXEC} "# probing resumes = $(date +'%Y-%m-%d %H:%M:%S')"
+${ECHO_EXEC} "# interval        = ${interval}s"
 ${ECHO_EXEC} "# client FQDN     = $(${HOSTNAME_EXEC} -f)"
 ${ECHO_EXEC} "# client kernel   = $(${UNAME_EXEC} -r)"
 if [ -f /etc/os-release ]; then

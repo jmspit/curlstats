@@ -255,7 +255,7 @@ void summary_options() {
 }
 
 void summary_slowtrail() {
-  heading( "List of slow probes" );
+  heading( "List of slow (" + options.slowString() + ") probes" );
   for ( auto l : slow_repsonse_list ) {
     cout << l.asString() << endl;
   }
@@ -276,7 +276,7 @@ void show_histogram( const map<double,size_t> &histo ) {
 void summary_histo() {
   heading( "QoS" );
   cout << FIXED3 << 100.0 - (double)globalstats.items_slow / (double)globalstats.items * 100.0 << "% ";
-  cout << "of probes return within " << options.min_duration << "s" << endl;
+  cout << "of probes return within " << FIXED3 << options.min_duration << "s" << endl;
 
   cout << endl << "probe count to response time distribution, bucket size " << options.time_bucket << "s" << endl;
   show_histogram( all_buckets );
@@ -301,7 +301,7 @@ void summary_histo() {
 }
 
 void summary_wait_class() {
-  heading( "Slow probe to wait-class distribution" );
+  heading( "Slow (" + options.slowString() + ") probe to wait-class distribution" );
   cout << setw(5) << "class";
   cout << setw(10) << "#probes";
   cout << setw(8) << "%blame";
