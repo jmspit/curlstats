@@ -149,7 +149,7 @@ void read( std::istream& in ) {
         curl_error_map[curl.curl_error]++;
         if ( curl.curl_error == 0 ) {
           http_code_map[curl.http_code]++;
-          if ( curl.http_code >= 400 ) http_error_list.push_back( curl );
+          if ( curl.http_code >= 500 ) http_error_list.push_back( curl );
           TimeKey tkey = TimeKey( curl.datetime.tm_hour, curl.datetime.tm_min );
           DateKey dkey = DateKey( curl.datetime.tm_year, curl.datetime.tm_mon, curl.datetime.tm_mday );
           if ( curl.total_time >= options.min_duration ) {
@@ -319,7 +319,7 @@ void summary_wait_class() {
 }
 
 void summary_slow_probes_to_dow() {
-  heading( "Slow probes to day-of-week distribution" );
+  heading( "Slow (" + options.slowString() + ") probes to day-of-week distribution" );
   cout << setw(9) << "day";
   cout << setw(7) << "%slow";
   cout << setw(8) << "avg";
@@ -501,8 +501,11 @@ void summary_global_stats() {
   cout << "first probe          : " << time_t2String( globalstats.first_time ) << endl;
   cout << "last  probe          : " << time_t2String( globalstats.last_time )  << endl;
   cout << "#probes              : " << globalstats.items << endl;
-  cout << "#slow probes         : " << globalstats.items_slow;
-  cout << " (QoS " << FIXED3 << (1.0-(double)globalstats.items_slow/(double)globalstats.items)*100.0 << "%)" << endl;
+  cout << "#slow probes         : " << globalstats.items_slow << endl;
+  size_t total_outside_qos = globalstats.items_slow + curl_error_list.size() + http_error_list.size();
+  cout << "#errors curl/http    : " << curl_error_list.size() << "/" << http_error_list.size()  << endl;
+  cout << "QoS                  : " << FIXED3 << (1.0-(double)total_outside_qos/(double)globalstats.items)*100.0 << "%" << endl;
+
   double global_avg_response = globalstats.total_time / globalstats.items;
   double global_opt_response = globalstats.wait_class_stats.getOptimalResponse();
 
@@ -525,37 +528,37 @@ void summary_global_stats() {
        << FIXED3W7 << (double)slow_map[wcDNS].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.namelookup.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.namelookup.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.namelookup.consistency(global_opt_response)
+       << setw(13) << globalstats.wait_class_stats.namelookup.consistency(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcTCPHandshake ) << " "
        << FIXED3W7 << (double)slow_map[wcTCPHandshake].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.connect.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.connect.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.connect.consistency(global_opt_response)
+       << setw(13) << globalstats.wait_class_stats.connect.consistency(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcSSLHandshake ) << " "
        << FIXED3W7 << (double)slow_map[wcSSLHandshake].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.appconnect.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.appconnect.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.appconnect.consistency(global_opt_response)
+       << setw(13) << globalstats.wait_class_stats.appconnect.consistency(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcSendStart ) << " "
        << FIXED3W7 << (double)slow_map[wcSendStart].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.pretransfer.asString(true) << " "
        << FIXEDPCT<< globalstats.wait_class_stats.pretransfer.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.pretransfer.consistency(global_opt_response)
+       << setw(13) << globalstats.wait_class_stats.pretransfer.consistency(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcWaitEnd ) << " "
        << FIXED3W7 << (double)slow_map[wcWaitEnd].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.starttransfer.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.starttransfer.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.starttransfer.consistency(global_opt_response)
+       << setw(13) << globalstats.wait_class_stats.starttransfer.consistency(global_avg_response)
        <<  endl;
   cout << setw(5) <<  waitClass2String( wcReceiveEnd ) << " "
        << FIXED3W7 << (double)slow_map[wcReceiveEnd].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.endtransfer.asString(true) << " "
        << FIXEDPCT << globalstats.wait_class_stats.endtransfer.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.endtransfer.consistency(global_opt_response)
+       << setw(13) << globalstats.wait_class_stats.endtransfer.consistency(global_avg_response)
        <<  endl;
 }
 
@@ -586,10 +589,10 @@ void summary() {
     if ( globalstats.items_slow > 0 ) {
       if ( options.hasMode( omSlowWaitClass ) ) summary_wait_class();
       if ( options.hasMode( omWeekdaySlowMap ) ) summary_slow_probes_to_dow();
-      if ( options.hasMode( omWeekdayMap ) ) summary_all_probes_to_dow();
       if ( options.hasMode( om24hSlowMap ) ) summary_slow_probes_to_daily();
-      if ( options.hasMode( om24hMap ) ) summary_all_probes_to_daily();
     }
+    if ( options.hasMode( omWeekdayMap ) ) summary_all_probes_to_dow();
+    if ( options.hasMode( om24hMap ) ) summary_all_probes_to_daily();
     if ( options.hasMode( omErrors ) ) summary_curl_errors();
     if ( options.hasMode( omErrors ) ) summary_http_errors();
     if ( options.hasMode( omDailyTrail ) ) summary_daily_history();
@@ -602,11 +605,17 @@ void summary() {
  * Program entry.
  */
 int main( int argc, char* argv[] ) {
-  if ( parseArgs( argc, argv, options ) ) {
-    // to prevent timezone translations
-    setenv( "TZ", "UTC", 1 );
-    read( cin );
-    summary();
-    return 0;
-  } else return 1;
+  try {
+    if ( parseArgs( argc, argv, options ) ) {
+      // to prevent timezone translations
+      setenv( "TZ", "UTC", 1 );
+      read( cin );
+      summary();
+      return 0;
+    } else return 1;
+  }
+  catch ( const std::exception &e ) {
+    cerr << e.what() << endl;
+    return 1;
+  }
 }

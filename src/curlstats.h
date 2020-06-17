@@ -80,7 +80,7 @@ string consistencyVerdict( double avg, double sdev, double relate ) {
   double ratio = 1000;
   if ( sdev > 0.0 ) ratio = 2.5 * avg / sdev;
   stringstream ss;
-  if ( avg / relate  >= 0.01 ) {
+  if ( avg / relate  >= 0.005 ) {
     if ( ratio < 0.04 ) ss << "abysmal";
     else if ( ratio < 0.08 ) ss << "awful";
     else if ( ratio < 0.1 ) ss << "bad";
@@ -153,7 +153,7 @@ struct QtyStats {
   }
 
   string consistency( double relate ) {
-    return consistencyVerdict( min, getSigma(), relate );
+    return consistencyVerdict( getAverage(), getSigma(), relate );
   }
 
   double getAverage() const {
@@ -455,6 +455,8 @@ struct CURL {
   double    time_appconnect;
   double    time_pretransfer;
   double    time_starttransfer;
+  size_t    size_upload;
+  size_t    size_download;
 
   /**
    * Calculate the duration of a WaitClass.
@@ -518,7 +520,7 @@ struct CURL {
 
   bool parse( const string &s ) {
     vector<string> tokens = split( s, ';' );
-    if ( tokens.size() == 12 ) {
+    if ( tokens.size() >= 12 ) {
       string stm = tokens[0] + " +00:00";
       memset( &datetime, 0, sizeof(datetime) );
       strptime( stm.c_str(), "%Y-%m-%d %H:%M:%S %z", &datetime );
@@ -531,6 +533,10 @@ struct CURL {
       time_appconnect    = stod(tokens[8]);
       time_pretransfer   = stod(tokens[9]);
       time_starttransfer = stod(tokens[11]);
+      if ( tokens.size() == 14 ) {
+        size_upload        = stoul(tokens[12]);
+        size_download      = stoul(tokens[13]);
+      }
     } else return false;
     return true;
   }
@@ -543,14 +549,13 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
   string mode = "";
   for(;;)
   {
-    switch( getopt(argc, argv, "d:tb:T:p:o:h") ) // note the colon (:) to indicate that 'b' has a parameter and is not a switch
+    switch( getopt(argc, argv, "d:tb:T:p:o:h") )
     {
       case 'b':
         options.time_bucket = stod( optarg );
         continue;
       case 'd':
         options.min_duration = stod( optarg );
-        if ( options.min_duration == 0 ) options.min_duration = DEFAULT_MIN_DURATION;
         continue;
       case 'o':
         mode = optarg;
