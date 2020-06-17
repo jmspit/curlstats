@@ -3,12 +3,12 @@
   * [Build](#build)
   * [Statistics](#statistics)
   * [Anatomy of a round-trip](#anatomy-of-a-round-trip)
-    + [DNS resolving (DNS)](#dns-resolvingdns
-    + [TCP Handshake (TCP)](#tcp-handshaketcp
-    + [TLS Handshake (TLS)](#tls-handshaketls
-    + [Request send (REQ)](#request-sendreq
-    + [Response received (RSP)](#response-receivedrsp
-    + [Response all data received (DAT)](#response-all-data-receiveddat
+    + [DNS resolving (DNS)](#dns-resolvingdns)
+    + [TCP Handshake (TCP)](#tcp-handshaketcp)
+    + [TLS Handshake (TLS)](#tls-handshaketls)
+    + [Request send (REQ)](#request-sendreq)
+    + [Response received (RSP)](#response-receivedrsp)
+    + [Response all data received (DAT)](#response-all-data-receiveddat)
   * [Output statistics](#output-statistics)
     + [Comments from data](#comments-from-data)
     + [Curlstats options in effect](#curlstats-options-in-effect)
