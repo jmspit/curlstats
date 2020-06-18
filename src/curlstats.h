@@ -78,7 +78,7 @@ struct Options {
 
 string consistencyVerdict( double avg, double sdev, double relate ) {
   double ratio = 1000;
-  if ( sdev > 0.0 ) ratio = 2.5 * avg / sdev;
+  if ( sdev > 0.0 ) ratio = 1.2 * avg / sdev;
   stringstream ss;
   if ( avg / relate  >= 0.005 ) {
     if ( ratio < 0.04 ) ss << "abysmal";
@@ -88,7 +88,7 @@ string consistencyVerdict( double avg, double sdev, double relate ) {
     else if ( ratio < 0.3 ) ss << "mediocre";
     else if ( ratio < 1.2 ) ss << "fair";
     else if ( ratio < 2.5 ) ss << "good";
-    else if ( ratio < 10.0 ) ss << "excellent";
+    else if ( ratio < 12.0 ) ss << "excellent";
     else ss << "phenomenal";
   } else {
     ss << "n/a";
@@ -177,7 +177,8 @@ enum WaitClass {
   wcSSLHandshake,   /**< The TLS layer needs to handshake. */
   wcSendStart,      /**< The client may need time to prepare the data before sending. */
   wcWaitEnd,        /**< The client waited on the first response packet from the peer. */
-  wcReceiveEnd      /**< The client spend time retrieving additional network packets. */
+  wcReceiveEnd,     /**< The client spend time retrieving additional network packets. */
+  wcInvalid         /**< An init value. */
 };
 
 /**
@@ -185,6 +186,8 @@ enum WaitClass {
  * value can easily be retrieved.
  */
 struct Order {
+  Order() : wc(wcInvalid), value(0.0) {}
+  Order( WaitClass wc, const double &v) : wc(wc), value(v) {}
   WaitClass wc;
   double value;
 };
@@ -214,6 +217,7 @@ struct WaitClassStats {
    * Add a value for the WaitClass.
    */
   void addValue( WaitClass wc, double value ) {
+    size_t compare = 0;
     switch ( wc ) {
       case wcDNS:
         namelookup.addValue( value );
@@ -232,12 +236,16 @@ struct WaitClassStats {
         break;
       case wcReceiveEnd:
         endtransfer.addValue( value );
-        size_t compare = endtransfer.items;
+        compare = endtransfer.items;
         if ( namelookup.items  != compare ||
              connect.items     != compare ||
              appconnect.items  != compare ||
              pretransfer.items != compare ||
-             starttransfer.items != compare ) throw std::runtime_error( "WaitClassStats - item count inconsistency" );
+             starttransfer.items != compare )
+          throw std::runtime_error( "WaitClassStats::addValue WaitClassStats to item count inconsistency" );
+        break;
+      case wcInvalid:
+        throw std::runtime_error("WaitClassStats::addValue invalid WaitClass wcInvalid");
         break;
     }
   }
@@ -256,7 +264,7 @@ struct WaitClassStats {
 
   WaitClass blame() const {
     set<Order> ordered;
-    ordered.insert( { wcDNS , namelookup.total } );
+    ordered.insert( Order( wcDNS , namelookup.total ) );
     ordered.insert( { wcTCPHandshake , connect.total } );
     ordered.insert( { wcSSLHandshake , appconnect.total } );
     ordered.insert( { wcSendStart , pretransfer.total } );
@@ -339,6 +347,16 @@ struct GlobalStats {
    * A list of findings.
    */
   list<string> findings;
+
+  /**
+   * Aggregate upload size
+   */
+  size_t size_upload;
+
+  /**
+   * Aggregate download size
+   */
+  size_t size_download;
 };
 
 /**
@@ -480,6 +498,8 @@ struct CURL {
         return (time_starttransfer-time_pretransfer);
       case wcReceiveEnd :
         return (total_time-time_starttransfer);
+      case wcInvalid :
+        throw std::runtime_error( "CURL::getWaitClassDuration invalid WaitClass wcInvalid" );
     }
     return 0.0;
   };
@@ -519,28 +539,78 @@ struct CURL {
   };
 
   bool parse( const string &s ) {
-    vector<string> tokens = split( s, ';' );
-    if ( tokens.size() >= 12 ) {
-      string stm = tokens[0] + " +00:00";
-      memset( &datetime, 0, sizeof(datetime) );
-      strptime( stm.c_str(), "%Y-%m-%d %H:%M:%S %z", &datetime );
+    try {
+      vector<string> tokens = split( s, ';' );
+      if ( tokens.size() >= 12 ) {
+        string stm = tokens[0] + " +00:00";
+        memset( &datetime, 0, sizeof(datetime) );
+        strptime( stm.c_str(), "%Y-%m-%d %H:%M:%S %z", &datetime );
 
-      curl_error         = stoi(tokens[1]);
-      http_code          = stoi(tokens[3]);
-      total_time         = stod(tokens[5]);
-      time_namelookup    = stod(tokens[6]);
-      time_connect       = stod(tokens[7]);
-      time_appconnect    = stod(tokens[8]);
-      time_pretransfer   = stod(tokens[9]);
-      time_starttransfer = stod(tokens[11]);
-      if ( tokens.size() == 14 ) {
-        size_upload        = stoul(tokens[12]);
-        size_download      = stoul(tokens[13]);
-      }
-    } else return false;
-    return true;
+        curl_error         = stoi(tokens[1]);
+        http_code          = stoi(tokens[3]);
+        total_time         = stod(tokens[5]);
+        time_namelookup    = stod(tokens[6]);
+        time_connect       = stod(tokens[7]);
+        time_appconnect    = stod(tokens[8]);
+        time_pretransfer   = stod(tokens[9]);
+        time_starttransfer = stod(tokens[11]);
+        if ( tokens.size() == 14 ) {
+          size_upload        = stoul(tokens[12]);
+          size_download      = stoul(tokens[13]);
+        } else {
+          size_upload   = 0;
+          size_download = 0;
+        }
+      } else return false;
+      return true;
+    }
+    catch ( const std::runtime_error &e ) {
+      return false;
+    }
   }
 };
+
+void printHelp() {
+  cout << endl;
+  cout << "curlstats reads from standard input" << endl;
+  cout << "see https://github.com/jmspit/curlstats" << endl;
+  cout << endl;
+  cout << "usage: " << endl;
+  cout << "  -b seconds" << endl;
+  cout << "     (real) response time histogram bucket in seconds (-o histo)" << endl;
+  cout << "     default: " << DEFAULT_TIME_BUCKET << " seconds" << endl;
+  cout << "  -d threshold" << endl;
+  cout << "     (real) specify a slow threshold in seconds" << endl;
+  cout << "     default: " << DEFAULT_MIN_DURATION << " seconds" << endl;
+  cout << "  -o option" << endl;
+  cout << "     limit the output, multiple options can be given by repeating -o" << endl;
+  cout << "       24hmap     : show 24h map of all probes" << endl;
+  cout << "       24hslowmap : show 24h map of slow probes" << endl;
+  cout << "       comments   : show comments from input" << endl;
+  cout << "       daytrail   : show daily history of all probes" << endl;
+  cout << "       errors     : show errors" << endl;
+  cout << "       global     : show global stats" << endl;
+  cout << "       histo      : show wait class histograms" << endl;
+  cout << "       options    : show options in effect" << endl;
+  cout << "       slowtrail  : trail of slow probes" << endl;
+  cout << "       slowwait   : show waits class distribution of slow probes" << endl;
+  cout << "       wdmap      : show weekday map of all probes" << endl;
+  cout << "       wdslowmap  : show weekday map of slow probes" << endl;
+  cout << "     default: 'all'"<< endl;
+  cout << "  -p threshold" << endl;
+  cout << "     only show histogram buckets with % total probes larger than this value (-o histo)" << endl;
+  cout << "     default: " << DEFAULT_HISTO_MIN_PCT << " %" <<endl;
+  cout << "  -T minutes" << endl;
+  cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 ) (-o 24hmap, 24hslowmap)" << endl;
+  cout << "     default: " << DEFAULT_DAY_BUCKET << " minutes" << endl;
+  cout << endl;
+  cout << waitClass2String( wcDNS, true )  << endl;
+  cout << waitClass2String( wcTCPHandshake, true )  << endl;
+  cout << waitClass2String( wcSSLHandshake, true )  << endl;
+  cout << waitClass2String( wcSendStart, true )  << endl;
+  cout << waitClass2String( wcWaitEnd, true )  << endl;
+  cout << waitClass2String( wcReceiveEnd, true )  << endl;
+}
 
 /**
  * Parse command line arguments.
@@ -552,10 +622,24 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
     switch( getopt(argc, argv, "d:tb:T:p:o:h") )
     {
       case 'b':
-        options.time_bucket = stod( optarg );
+        try {
+          options.time_bucket = stod( optarg );
+        }
+        catch ( const exception& e ) {
+          cerr << "invalid -b value '" << optarg << "'" << endl;
+          printHelp();
+          return false;
+        }
         continue;
       case 'd':
-        options.min_duration = stod( optarg );
+        try {
+          options.min_duration = stod( optarg );
+        }
+        catch ( const exception& e ) {
+          cerr << "invalid -d value '" << optarg << "'" << endl;
+          printHelp();
+          return false;
+        }
         continue;
       case 'o':
         mode = optarg;
@@ -574,59 +658,37 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         else if ( mode == "wdslowmap" ) options.output_mode |= omWeekdaySlowMap;
         else {
           cerr << "unknown mode '" << mode << "'" << endl;
+          printHelp();
           return false;
         }
         continue;
       case 'p':
-        options.histo_min_pct = stod( optarg );
+        try {
+          options.histo_min_pct = stod( optarg );
+        }
+        catch ( const exception& e ) {
+          cerr << "invalid -p value '" << optarg << "'" << endl;
+          printHelp();
+          return false;
+        }
         if ( options.histo_min_pct > 10.0 ) options.histo_min_pct = DEFAULT_HISTO_MIN_PCT;
         continue;
       case 'T':
-        options.day_bucket = stoi( optarg );
+        try {
+          options.day_bucket = stoi( optarg );
+        }
+        catch ( const exception& e ) {
+          cerr << "invalid -T value '" << optarg << "'" << endl;
+          printHelp();
+          return false;
+        }
         if ( options.day_bucket <= 0 ) options.day_bucket = DEFAULT_DAY_BUCKET;
         if ( options.day_bucket > 60 ) options.day_bucket = DEFAULT_DAY_BUCKET;
         continue;
       case '?':
       case 'h':
       default :
-        cout << "reads from standard input" << endl;
-        cout << "see https://github.com/jmspit/curlstats" << endl;
-        cout << endl;
-        cout << "usage: " << endl;
-        cout << "  -b seconds" << endl;
-        cout << "     (real) response time histogram bucket in seconds (-o histo)" << endl;
-        cout << "     default: " << DEFAULT_TIME_BUCKET << " seconds" << endl;
-        cout << "  -d threshold" << endl;
-        cout << "     (real) specify a slow threshold in seconds" << endl;
-        cout << "     default: " << DEFAULT_MIN_DURATION << " seconds" << endl;
-        cout << "  -o option" << endl;
-        cout << "     limit the output, multiple options can be given by repeating -o" << endl;
-        cout << "       24hmap     : show 24h map of all probes" << endl;
-        cout << "       24hslowmap : show 24h map of slow probes" << endl;
-        cout << "       comments   : show comments from input" << endl;
-        cout << "       daytrail   : show daily history of all probes" << endl;
-        cout << "       errors     : show errors" << endl;
-        cout << "       global     : show global stats" << endl;
-        cout << "       histo      : show wait class histograms" << endl;
-        cout << "       options    : show options in effect" << endl;
-        cout << "       slowtrail  : trail of slow probes" << endl;
-        cout << "       slowwait   : show waits class distribution of slow probes" << endl;
-        cout << "       wdmap      : show weekday map of all probes" << endl;
-        cout << "       wdslowmap  : show weekday map of slow probes" << endl;
-        cout << "     default: 'all'"<< endl;
-        cout << "  -p threshold" << endl;
-        cout << "     only show histogram buckets with % total probes larger than this value (-o histo)" << endl;
-        cout << "     default: " << DEFAULT_HISTO_MIN_PCT << " %" <<endl;
-        cout << "  -T minutes" << endl;
-        cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 ) (-o 24hmap, 24hslowmap)" << endl;
-        cout << "     default: " << DEFAULT_DAY_BUCKET << " minutes" << endl;
-        cout << endl;
-        cout << waitClass2String( wcDNS, true )  << endl;
-        cout << waitClass2String( wcTCPHandshake, true )  << endl;
-        cout << waitClass2String( wcSSLHandshake, true )  << endl;
-        cout << waitClass2String( wcSendStart, true )  << endl;
-        cout << waitClass2String( wcWaitEnd, true )  << endl;
-        cout << waitClass2String( wcReceiveEnd, true )  << endl;
+        printHelp();
         return false;
       case -1:
         break;

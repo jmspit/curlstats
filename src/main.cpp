@@ -158,37 +158,45 @@ void read( std::istream& in ) {
             if ( options.hasMode( omSlowTrail ) ) slow_repsonse_list.push_back( curl );
             globalstats.items_slow++;
             globalstats.total_slow_time += curl.total_time;
-            slow_dow_map[curl.datetime.tm_wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
-            slow_dow_map[curl.datetime.tm_wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
-            slow_dow_map[curl.datetime.tm_wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
-            slow_dow_map[curl.datetime.tm_wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
-            slow_dow_map[curl.datetime.tm_wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
-            slow_dow_map[curl.datetime.tm_wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+            if ( options.hasMode( omWeekdayMap ) || options.hasMode( omWeekdaySlowMap ) ) {
+              slow_dow_map[curl.datetime.tm_wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+              slow_dow_map[curl.datetime.tm_wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+              slow_dow_map[curl.datetime.tm_wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+              slow_dow_map[curl.datetime.tm_wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+              slow_dow_map[curl.datetime.tm_wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+              slow_dow_map[curl.datetime.tm_wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+            }
+            if ( options.hasMode( om24hMap ) || options.hasMode( om24hSlowMap ) ) {
 
-            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
-            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
-            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
-            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
-            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
-            slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+              slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+              slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+              slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+              slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+              slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+              slow_day_map[bucket(tkey,options.day_bucket)].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+            }
 
-            slow_date_map[dkey].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
-            slow_date_map[dkey].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
-            slow_date_map[dkey].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
-            slow_date_map[dkey].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
-            slow_date_map[dkey].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
-            slow_date_map[dkey].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+            if ( options.hasMode( omDailyTrail ) ) {
+              slow_date_map[dkey].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+              slow_date_map[dkey].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+              slow_date_map[dkey].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+              slow_date_map[dkey].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+              slow_date_map[dkey].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+              slow_date_map[dkey].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+            }
 
             slow_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
           }
           globalstats.total_time += curl.total_time;
 
-          dns_buckets[ bucket( curl.getWaitClassDuration( wcDNS ), options.time_bucket ) ]++;
-          tcp_buckets[ bucket( curl.getWaitClassDuration( wcTCPHandshake ), options.time_bucket ) ]++;
-          tls_buckets[ bucket( curl.getWaitClassDuration( wcSSLHandshake ), options.time_bucket ) ]++;
-          req_buckets[ bucket( curl.getWaitClassDuration( wcSendStart ), options.time_bucket ) ]++;
-          rsp_buckets[ bucket( curl.getWaitClassDuration( wcWaitEnd ), options.time_bucket ) ]++;
-          dat_buckets[ bucket( curl.getWaitClassDuration( wcReceiveEnd ), options.time_bucket ) ]++;
+          if ( options.hasMode( omHistograms ) ) {
+            dns_buckets[ bucket( curl.getWaitClassDuration( wcDNS ), options.time_bucket ) ]++;
+            tcp_buckets[ bucket( curl.getWaitClassDuration( wcTCPHandshake ), options.time_bucket ) ]++;
+            tls_buckets[ bucket( curl.getWaitClassDuration( wcSSLHandshake ), options.time_bucket ) ]++;
+            req_buckets[ bucket( curl.getWaitClassDuration( wcSendStart ), options.time_bucket ) ]++;
+            rsp_buckets[ bucket( curl.getWaitClassDuration( wcWaitEnd ), options.time_bucket ) ]++;
+            dat_buckets[ bucket( curl.getWaitClassDuration( wcReceiveEnd ), options.time_bucket ) ]++;
+          }
 
           globalstats.wait_class_stats.namelookup.addValue( curl.getWaitClassDuration( wcDNS ) );
           globalstats.wait_class_stats.connect.addValue( curl.getWaitClassDuration( wcTCPHandshake ) );
@@ -197,32 +205,42 @@ void read( std::istream& in ) {
           globalstats.wait_class_stats.starttransfer.addValue( curl.getWaitClassDuration( wcWaitEnd ) );
           globalstats.wait_class_stats.endtransfer.addValue( curl.getWaitClassDuration( wcReceiveEnd ) );
 
-          total_date_map[dkey].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
-          total_date_map[dkey].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
-          total_date_map[dkey].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
-          total_date_map[dkey].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
-          total_date_map[dkey].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
-          total_date_map[dkey].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+          if ( options.hasMode( omDailyTrail ) ) {
+            total_date_map[dkey].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+            total_date_map[dkey].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+            total_date_map[dkey].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+            total_date_map[dkey].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+            total_date_map[dkey].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+            total_date_map[dkey].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+          }
 
-          total_day_map[bucket(tkey,options.day_bucket)].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
-          total_day_map[bucket(tkey,options.day_bucket)].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
-          total_day_map[bucket(tkey,options.day_bucket)].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
-          total_day_map[bucket(tkey,options.day_bucket)].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
-          total_day_map[bucket(tkey,options.day_bucket)].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
-          total_day_map[bucket(tkey,options.day_bucket)].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+          if ( options.hasMode( om24hMap ) || options.hasMode( om24hSlowMap ) ) {
+            total_day_map[bucket(tkey,options.day_bucket)].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+            total_day_map[bucket(tkey,options.day_bucket)].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+            total_day_map[bucket(tkey,options.day_bucket)].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+            total_day_map[bucket(tkey,options.day_bucket)].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+            total_day_map[bucket(tkey,options.day_bucket)].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+            total_day_map[bucket(tkey,options.day_bucket)].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+          }
 
-          total_dow_map[curl.datetime.tm_wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
-          total_dow_map[curl.datetime.tm_wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
-          total_dow_map[curl.datetime.tm_wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
-          total_dow_map[curl.datetime.tm_wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
-          total_dow_map[curl.datetime.tm_wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
-          total_dow_map[curl.datetime.tm_wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+          if ( options.hasMode( omWeekdayMap ) || options.hasMode( omWeekdaySlowMap ) ) {
+            total_dow_map[curl.datetime.tm_wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+            total_dow_map[curl.datetime.tm_wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+            total_dow_map[curl.datetime.tm_wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+            total_dow_map[curl.datetime.tm_wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+            total_dow_map[curl.datetime.tm_wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+            total_dow_map[curl.datetime.tm_wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+          }
 
           if ( globalstats.first_time == 0 || timelocal(&curl.datetime ) < globalstats.first_time )
             globalstats.first_time = timelocal(&curl.datetime );
           if ( globalstats.last_time == 0 || timelocal(&curl.datetime ) > globalstats.last_time )
             globalstats.last_time = timelocal(&curl.datetime );
           all_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
+
+          globalstats.size_upload += curl.size_upload;
+          globalstats.size_download += curl.size_download;
+
           globalstats.items++;
         } else {
           curl_error_list.push_back( curl );
@@ -347,7 +365,7 @@ void summary_slow_probes_to_dow() {
 }
 
 void summary_all_probes_to_dow() {
-  heading( "All probes to day-of-week distribution" );
+  heading( "All probes to day-of-week distribution (slow is " + options.slowString() + ")" );
   cout << setw(9) << "day";
   cout << setw(7) << "%slow";
   cout << setw(8) << "avg";
@@ -405,7 +423,7 @@ void summary_slow_probes_to_daily() {
 }
 
 void summary_all_probes_to_daily() {
-  heading( "All probes to daily time bucket distribution" );
+  heading( "All probes to daily time bucket distribution (slow is " + options.slowString() + ")" );
   cout << "truncated to " << options.day_bucket << " minute buckets, per waitclass min max avg" << endl;
   cout << setw(4) << "hh:mm";
   cout << setw(7) << "%slow";
@@ -463,7 +481,7 @@ void summary_http_errors() {
 }
 
 void summary_daily_history() {
-  heading( "Daily history - all probes" );
+  heading( "Daily history - all probes (slow is " + options.slowString() + ")" );
   cout << setw(10) << "date";
   cout << setw(8) << "%slow";
   cout << setw(8) << "avg";
@@ -506,6 +524,9 @@ void summary_global_stats() {
   cout << "#errors curl/http    : " << curl_error_list.size() << "/" << http_error_list.size()  << endl;
   cout << "QoS                  : " << FIXED3 << (1.0-(double)total_outside_qos/(double)globalstats.items)*100.0 << "%" << endl;
 
+  cout << "up/down bytes/req    : " << FIXED3 << (double)globalstats.size_upload/(double)globalstats.items/1024.0 << "KiB / "
+                                    << FIXED3 << (double)globalstats.size_download/(double)globalstats.items/1024.0 << "KiB" << endl;
+
   double global_avg_response = globalstats.total_time / globalstats.items;
   double global_opt_response = globalstats.wait_class_stats.getOptimalResponse();
 
@@ -514,7 +535,7 @@ void summary_global_stats() {
                                       (global_avg_response - global_opt_response),
                                       global_avg_response ) << ")" << endl;
   cout << "ideal response time  : " << FIXED3 << global_opt_response << "s" << endl;
-  cout << "estimate network RTT : " << FIXED3 << globalstats.wait_class_stats.getNetworkRoundtrip()*1000.0 << "ms" << endl;
+  cout << "estimate network RTT : " << FIXED3 << globalstats.wait_class_stats.getNetworkRoundtrip()*1000.0 << "ms " << endl;
   cout << setw(4) << "class";
   cout << setw(8) << "%slow";
   cout << setw(8) << "min";
@@ -570,7 +591,7 @@ void summary_abnormal() {
     globalstats.findings.push_back( "TLS is expensive compared to TCP" );
   }
   if ( globalstats.findings.size() > 0 ) {
-    heading( "Abnormal" );
+    heading( "Findings" );
     for ( auto f : globalstats.findings ) {
       cout << "  - " << f << endl;
     }
@@ -615,7 +636,7 @@ int main( int argc, char* argv[] ) {
     } else return 1;
   }
   catch ( const std::exception &e ) {
-    cerr << e.what() << endl;
+    cerr << "caught std::exception: " << e.what() << endl;
     return 1;
   }
 }
