@@ -8,6 +8,7 @@ using namespace std;
 
 #define FIXED3 fixed << setfill(' ') << setprecision(3)
 #define FIXED3W7 fixed << setfill(' ') << setprecision(3) << setw(7)
+#define FIXED3W10 fixed << setfill(' ') << setprecision(3) << setw(10)
 #define FIXEDINT fixed << setfill(' ') << setprecision(0) << setw(9)
 #define FIXEDPCT fixed << setfill(' ') << setprecision(2) << setw(6)
 
@@ -76,26 +77,24 @@ struct Options {
 };
 
 
-string consistencyVerdict( double avg, double sdev, double relate ) {
+string consistencyVerdict( double avg, double sdev, double max ) {
   double ratio = 1000;
-  if ( sdev > 0.0 ) ratio = 1.2 * avg / sdev;
+  double vsigma5 = sdev*5.0;
+  if ( sdev > 0.0 ) ratio = ( 1.0 * (vsigma5/max) + 2.0 * (avg/sdev) ) / 3.0;
   stringstream ss;
-  if ( avg / relate  >= 0.005 ) {
-    if ( ratio < 0.04 ) ss << "abysmal";
-    else if ( ratio < 0.08 ) ss << "awful";
-    else if ( ratio < 0.1 ) ss << "bad";
-    else if ( ratio < 0.2 ) ss << "poor";
-    else if ( ratio < 0.3 ) ss << "mediocre";
-    else if ( ratio < 1.2 ) ss << "fair";
-    else if ( ratio < 2.5 ) ss << "good";
-    else if ( ratio < 12.0 ) ss << "excellent";
-    else ss << "phenomenal";
-  } else {
-    ss << "n/a";
-  }
-  //ss << " (";
-  //ss << FIXED3W7 << ratio;
-  //ss << ")";
+
+  if ( ratio < 0.04 ) ss << "abysmal";
+  else if ( ratio < 0.08 ) ss << "awful";
+  else if ( ratio < 0.1 ) ss << "bad";
+  else if ( ratio < 0.2 ) ss << "poor";
+  else if ( ratio < 0.3 ) ss << "mediocre";
+  else if ( ratio < 1.2 ) ss << "fair";
+  else if ( ratio < 2.5 ) ss << "good";
+  else if ( ratio < 12.0 ) ss << "excellent";
+  else ss << "phenomenal";
+
+  //ss << " " << setprecision(2) << setw(7) << fixed << ratio;
+
   return ss.str();
 }
 
@@ -152,8 +151,8 @@ struct QtyStats {
     return ss.str();
   }
 
-  string consistency( double relate ) {
-    return consistencyVerdict( getAverage(), getSigma(), relate );
+  string consistency() {
+    return consistencyVerdict( getAverage(), getSigma(), max );
   }
 
   double getAverage() const {
@@ -306,7 +305,9 @@ struct GlobalStats {
     total_time(0),
     total_slow_time(0),
     first_time(0),
-    last_time(0) {};
+    last_time(0),
+    response_min(0.0),
+    response_max(0.0) {};
 
   /**
    * Global WaitClassStats
@@ -357,6 +358,9 @@ struct GlobalStats {
    * Aggregate download size
    */
   size_t size_download;
+
+  double response_min;
+  double response_max;
 };
 
 /**
