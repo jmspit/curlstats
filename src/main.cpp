@@ -535,6 +535,7 @@ void summary_global_stats() {
   cout << "average response time: " << FIXED3 << global_avg_response << "s";
   cout << " (" << consistencyVerdict( global_avg_response,
                                       (global_avg_response - global_opt_response),
+                                      globalstats.response_min,
                                       globalstats.response_max ) << ")" << endl;
   cout << "ideal response       : " << FIXED3 << global_opt_response << "s" << endl;
   cout << "min / max response   : " << FIXED3 << globalstats.response_min << "s";

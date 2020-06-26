@@ -77,10 +77,11 @@ struct Options {
 };
 
 
-string consistencyVerdict( double avg, double sdev, double max ) {
+string consistencyVerdict( double avg, double sdev, double min, double max ) {
   double ratio = 1000;
   double vsigma5 = sdev*5.0;
-  if ( sdev > 0.0 ) ratio = ( 1.0 * (vsigma5/max) + 2.0 * (avg/sdev) ) / 3.0;
+  double scaler = 1.2;
+  if ( sdev > 0.0 ) ratio = scaler * ( 2.0 * (vsigma5/max) + 3.0 * (avg/sdev) + 1.0 * avg/(max-min) ) / 6.0;
   stringstream ss;
 
   if ( ratio < 0.04 ) ss << "abysmal";
@@ -152,7 +153,7 @@ struct QtyStats {
   }
 
   string consistency() {
-    return consistencyVerdict( getAverage(), getSigma(), max );
+    return consistencyVerdict( getAverage(), getSigma(), min, max );
   }
 
   double getAverage() const {
