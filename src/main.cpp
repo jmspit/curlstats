@@ -282,13 +282,16 @@ void summary_slowtrail() {
 }
 
 void show_histogram( const map<double,size_t> &histo ) {
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << endl;
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << setw(7) << "pctile" <<endl;
+  double percentile = 0.0;
   for ( auto b : histo ) {
     double pct = b.second/(double)globalstats.items*100.0;
+    percentile += pct;
     if ( pct >= options.histo_min_pct ) {
       cout << "<" << FIXED3W7 << b.first;
       cout << "s " << FIXEDINT << b.second;
-      cout << " " << FIXEDPCT << pct << endl;
+      cout << " " << FIXEDPCT << pct;
+      cout << " " << FIXEDPCT << percentile << endl;
     }
   }
 }
