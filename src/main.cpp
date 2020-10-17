@@ -150,8 +150,8 @@ void read( std::istream& in ) {
         if ( curl.curl_error == 0 ) {
           http_code_map[curl.http_code]++;
           if ( curl.http_code >= 500 ) http_error_list.push_back( curl );
-          TimeKey tkey = TimeKey( curl.datetime.tm_hour, curl.datetime.tm_min );
-          DateKey dkey = DateKey( curl.datetime.tm_year, curl.datetime.tm_mon, curl.datetime.tm_mday );
+          TimeKey tkey = TimeKey( curl.datetime.hour, curl.datetime.minute );
+          DateKey dkey = DateKey( curl.datetime.year, curl.datetime.month, curl.datetime.day );
           if ( curl.total_time >= options.min_duration ) {
             slow_map[curl.getDominantWaitClass()].addValue( curl.getWaitClassDuration( curl.getDominantWaitClass() ) );
             wait_class_map[curl.getDominantWaitClass()]++;
@@ -159,12 +159,12 @@ void read( std::istream& in ) {
             globalstats.items_slow++;
             globalstats.total_slow_time += curl.total_time;
             if ( options.hasMode( omWeekdayMap ) || options.hasMode( omWeekdaySlowMap ) ) {
-              slow_dow_map[curl.datetime.tm_wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
-              slow_dow_map[curl.datetime.tm_wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
-              slow_dow_map[curl.datetime.tm_wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
-              slow_dow_map[curl.datetime.tm_wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
-              slow_dow_map[curl.datetime.tm_wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
-              slow_dow_map[curl.datetime.tm_wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+              slow_dow_map[curl.datetime.wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+              slow_dow_map[curl.datetime.wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+              slow_dow_map[curl.datetime.wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+              slow_dow_map[curl.datetime.wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+              slow_dow_map[curl.datetime.wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+              slow_dow_map[curl.datetime.wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
             }
             if ( options.hasMode( om24hMap ) || options.hasMode( om24hSlowMap ) ) {
 
@@ -226,18 +226,18 @@ void read( std::istream& in ) {
           }
 
           if ( options.hasMode( omWeekdayMap ) || options.hasMode( omWeekdaySlowMap ) ) {
-            total_dow_map[curl.datetime.tm_wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
-            total_dow_map[curl.datetime.tm_wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
-            total_dow_map[curl.datetime.tm_wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
-            total_dow_map[curl.datetime.tm_wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
-            total_dow_map[curl.datetime.tm_wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
-            total_dow_map[curl.datetime.tm_wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
+            total_dow_map[curl.datetime.wday].addValue( wcDNS, curl.getWaitClassDuration( wcDNS ) );
+            total_dow_map[curl.datetime.wday].addValue( wcTCPHandshake, curl.getWaitClassDuration( wcTCPHandshake ) );
+            total_dow_map[curl.datetime.wday].addValue( wcSSLHandshake, curl.getWaitClassDuration( wcSSLHandshake ) );
+            total_dow_map[curl.datetime.wday].addValue( wcSendStart, curl.getWaitClassDuration( wcSendStart ) );
+            total_dow_map[curl.datetime.wday].addValue( wcWaitEnd, curl.getWaitClassDuration( wcWaitEnd ) );
+            total_dow_map[curl.datetime.wday].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
           }
 
-          if ( globalstats.first_time == 0 || timelocal(&curl.datetime ) < globalstats.first_time )
-            globalstats.first_time = timelocal(&curl.datetime );
-          if ( globalstats.last_time == 0 || timelocal(&curl.datetime ) > globalstats.last_time )
-            globalstats.last_time = timelocal(&curl.datetime );
+          if ( globalstats.first_time.year == 0 || curl.datetime < globalstats.first_time )
+            globalstats.first_time = curl.datetime;
+          if ( globalstats.last_time.year == 0 ||  curl.datetime > globalstats.last_time )
+            globalstats.last_time = curl.datetime;
           all_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
 
           globalstats.size_upload += curl.size_upload;
@@ -409,8 +409,8 @@ void summary_slow_probes_to_daily() {
   cout << " ----------DAT----------";
   cout << endl;
   for ( auto d : slow_day_map ) {
-    cout << fixed << setw(2) << setfill('0') << d.first.tm_hour << ":"
-         << fixed << setw(2) << setfill('0') << d.first.tm_min << " ";
+    cout << fixed << setw(2) << setfill('0') << d.first.hour << ":"
+         << fixed << setw(2) << setfill('0') << d.first.minute << " ";
     cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_day_map[d.first].getNumItems() * 100.0 << " ";
     cout << FIXED3W7 << slow_day_map[d.first].avgResponse() << " ";
     cout << setw(5) << waitClass2String( slow_day_map[d.first].blame() ) << " ";
@@ -439,8 +439,8 @@ void summary_all_probes_to_daily() {
   cout << " ----------DAT----------";
   cout << endl;
   for ( auto d : total_day_map ) {
-    cout << fixed << setw(2) << setfill('0') << d.first.tm_hour << ":"
-         << fixed << setw(2) << setfill('0') << d.first.tm_min << " ";
+    cout << fixed << setw(2) << setfill('0') << d.first.hour << ":"
+         << fixed << setw(2) << setfill('0') << d.first.minute << " ";
     cout << FIXEDPCT << (double)slow_day_map[d.first].getNumItems() / (double)d.second.getNumItems() * 100.0 << " ";
     cout << FIXED3W7 << total_day_map[d.first].avgResponse() << " ";
     cout << setw(5) << waitClass2String( total_day_map[d.first].blame() ) << " ";
@@ -496,9 +496,9 @@ void summary_daily_history() {
   cout << " ----------DAT----------";
   cout << endl;
   for ( auto d : total_date_map ) {
-    cout << setw(4) << setfill('0') << d.first.tm_year+1900;
-    cout << '-' << setw(2) << setfill('0') << d.first.tm_mon+1;
-    cout << '-' << setw(2) << setfill('0') << d.first.tm_mday;
+    cout << setw(4) << setfill('0') << d.first.year;
+    cout << '-' << setw(2) << setfill('0') << d.first.month;
+    cout << '-' << setw(2) << setfill('0') << d.first.day;
     cout << " ";
     cout << FIXED3W7 << (double)slow_date_map[d.first].getNumItems() / (double)d.second.getNumItems() * 100.0;
     cout << " ";
@@ -518,8 +518,8 @@ void summary_daily_history() {
 
 void summary_global_stats() {
   heading( "Global stats (slow is " + options.slowString() + ")" );
-  cout << "first probe          : " << time_t2String( globalstats.first_time ) << endl;
-  cout << "last  probe          : " << time_t2String( globalstats.last_time )  << endl;
+  cout << "first probe          : " << globalstats.first_time.asString() << endl;
+  cout << "last  probe          : " << globalstats.last_time.asString() << endl;
   cout << "#probes              : " << globalstats.items << endl;
   cout << "#slow probes         : " << globalstats.items_slow << endl;
   size_t total_outside_qos = globalstats.items_slow + curl_error_list.size() + http_error_list.size();
@@ -631,10 +631,9 @@ void summary() {
  * Program entry.
  */
 int main( int argc, char* argv[] ) {
+  tzset();
   try {
     if ( parseArgs( argc, argv, options ) ) {
-      // to prevent timezone translations
-      setenv( "TZ", "UTC", 1 );
       read( cin );
       summary();
       return 0;

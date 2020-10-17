@@ -292,6 +292,90 @@ struct WaitClassStats {
 
 };
 
+struct DateTime {
+  int year = 0;
+  int month = 0;
+  int day = 0;
+  int hour = 0;
+  int minute = 0;
+  int second = 0;
+  int wday = 0;
+
+  bool parse( const std::string& src ) {
+    std::stringstream ss;
+    char c;
+    ss << src;
+    ss >> year;
+    ss >> c;
+    if ( c != '-' ) return false;
+    ss >> month;
+    ss >> c;
+    if ( c != '-' ) return false;
+    ss >> day;
+    ss >> hour;
+    ss >> c;
+    if ( c != ':' ) return false;
+    ss >> minute;
+    ss >> c;
+    if ( c != ':' ) return false;
+    ss >> second;
+    std::tm tm_in = { 0, 0, 0, day, month-1, year - 1900 };
+    time_t tmp = mktime( &tm_in );
+    const std::tm* tm_out = std::localtime( &tmp );
+    wday = tm_out->tm_wday;
+    return true;
+  }
+
+  std::string asString() {
+    stringstream ss;
+    ss << setfill('0') << setw(4) << year;
+    ss << '-';
+    ss << setfill('0') << setw(2) << month;
+    ss << '-';
+    ss << setfill('0') << setw(2) << day;
+    ss << " ";
+    ss << setfill('0') << setw(2) << hour;
+    ss << ":";
+    ss << setfill('0') << setw(2) << minute;
+    ss << ":";
+    ss << setfill('0') << setw(2) << second;
+    return ss.str();
+  }
+
+  bool operator<( const DateTime& other ) {
+    return year < other.year ||
+           (year == other.year && month < other.month ) ||
+           (year == other.year && month == other.month && day < other.day ) ||
+           (year == other.year && month == other.month && day == other.day && hour < other.hour ) ||
+           (year == other.year && month == other.month && day == other.day && hour == other.hour && minute < other.minute) ||
+           (year == other.year && month == other.month && day == other.day && hour == other.hour && minute == other.minute && second < other.second );
+  }
+
+  bool operator>( const DateTime& other ) {
+    return year > other.year ||
+           (year == other.year && month > other.month ) ||
+           (year == other.year && month == other.month && day > other.day ) ||
+           (year == other.year && month == other.month && day == other.day && hour > other.hour ) ||
+           (year == other.year && month == other.month && day == other.day && hour == other.hour && minute > other.minute) ||
+           (year == other.year && month == other.month && day == other.day && hour == other.hour && minute == other.minute && second > other.second );
+  }
+
+  bool operator==( const DateTime& other ) {
+    return (year == other.year && month == other.month && day == other.day && hour == other.hour && minute == other.minute && second == other.second );
+  }
+
+  DateTime& operator=( const DateTime& other ) {
+    year = other.year;
+    month = other.month;
+    day = other.day;
+    hour = other.hour;
+    minute = other.minute;
+    second = other.second;
+    wday = other.wday;
+    return *this;
+  }
+};
+
 /**
  * Global statistics.
  */
@@ -305,8 +389,8 @@ struct GlobalStats {
     items_slow(0),
     total_time(0),
     total_slow_time(0),
-    first_time(0),
-    last_time(0),
+    first_time(),
+    last_time(),
     response_min(0.0),
     response_max(0.0) {};
 
@@ -338,12 +422,12 @@ struct GlobalStats {
   /**
    * The time of the first probe seen.
    */
-  time_t first_time;
+  DateTime first_time;
 
   /**
    * The time of the last probe seen.
    */
-  time_t last_time;
+  DateTime last_time;
 
   /**
    * A list of findings.
@@ -368,54 +452,54 @@ struct GlobalStats {
  * Key to bucket repeating daily time-od-day ranges.
  */
 struct TimeKey {
-  TimeKey() : tm_hour(0),tm_min(0) {};
-  TimeKey( int hour, int min ) : tm_hour(hour),tm_min(min) {};
-  int tm_hour;
-  int tm_min;
+  TimeKey() : hour(0),minute(0) {};
+  TimeKey( int hour, int minute ) : hour(hour),minute(minute) {};
+  int hour;
+  int minute;
 };
 
 /**
  * Equality on TimeKey.
  */
 bool operator==( const TimeKey& k1, const TimeKey &k2 ) {
-  return k1.tm_hour == k2.tm_hour && k1.tm_min == k2.tm_min;
+  return k1.hour == k2.hour && k1.minute == k2.minute;
 }
 
 /**
  * Ordering on TimeKey.
  */
 bool operator<( const TimeKey& k1, const TimeKey &k2 ) {
-  return k1.tm_hour < k2.tm_hour || ( k1.tm_hour == k2.tm_hour && k1.tm_min < k2.tm_min );
+  return k1.hour < k2.hour || ( k1.hour == k2.hour && k1.minute < k2.minute );
 }
 
 struct DateKey {
-  DateKey() : tm_year(1970),tm_mon(0),tm_mday(1) {}
-  DateKey( int year, int month, int day ) : tm_year(year),tm_mon(month),tm_mday(day) {};
-  int tm_year;
-  int tm_mon;
-  int tm_mday;
+  DateKey() : year(0),month(1),day(1) {}
+  DateKey( int year, int month, int day ) : year(year),month(month),day(day) {};
+  int year;
+  int month;
+  int day;
 };
 
 /**
  * Equality on DateKey.
  */
 bool operator==( const DateKey& k1, const DateKey &k2 ) {
-  return k1.tm_year == k2.tm_year && k1.tm_mon == k2.tm_mon && k1.tm_mday == k2.tm_mday;
+  return k1.year == k2.year && k1.month == k2.month && k1.day == k2.day;
 }
 
 /**
  * Ordering on DateKey.
  */
 bool operator<( const DateKey& k1, const DateKey &k2 ) {
-  return k1.tm_year < k2.tm_year || ( k1.tm_year == k2.tm_year && k1.tm_mon < k2.tm_mon ) ||
-          ( k1.tm_year == k2.tm_year && k1.tm_mon == k2.tm_mon && k1.tm_mday < k2.tm_mday );
+  return k1.year < k2.year || ( k1.year == k2.year && k1.month < k2.month ) ||
+          ( k1.year == k2.year && k1.month == k2.month && k1.day < k2.day );
 }
 
 /**
  * Bucket a TimeKey.
  */
 TimeKey bucket( const TimeKey &k, int bucket ) {
-  return TimeKey( k.tm_hour, k.tm_min / bucket * bucket );
+  return TimeKey( k.hour, k.minute / bucket * bucket );
 }
 
 /**
@@ -469,7 +553,7 @@ string waitClass2String( WaitClass wc, bool describe = false ) {
  * Curl statistics line.
  */
 struct CURL {
-  struct tm datetime;
+  DateTime  datetime;
   uint16_t  curl_error;
   uint16_t  http_code;
   double    total_time;
@@ -527,7 +611,7 @@ struct CURL {
 
   string asString() {
     stringstream ss;
-    ss << put_time( &datetime, "%F %T") << " ";
+    ss << datetime.asString() << " ";
     ss << "curl=" << curl_error << " ";
     if ( curl_error == 0 ) {
       ss << "http=" << http_code << " ";
@@ -547,10 +631,8 @@ struct CURL {
     try {
       vector<string> tokens = split( s, ';' );
       if ( tokens.size() >= 12 ) {
-        string stm = tokens[0] + " +00:00";
-        memset( &datetime, 0, sizeof(datetime) );
-        strptime( stm.c_str(), "%Y-%m-%d %H:%M:%S %z", &datetime );
-
+        bool ok = datetime.parse( tokens[0] );
+        if ( ! ok ) return false;
         curl_error         = stoi(tokens[1]);
         http_code          = stoi(tokens[3]);
         total_time         = stod(tokens[5]);
@@ -709,16 +791,6 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
  */
 bool isCommment( const string& s ) {
   return s.length() == 0 || s[0] == '#';
-}
-
-/**
- * Convert a time_t to a string.
- */
-string time_t2String( time_t t ) {
-  tm tm = *std::localtime(&t);
-  std::stringstream ss;
-  ss << put_time( &tm, "%F %T");
-  return ss.str();
 }
 
 /**
