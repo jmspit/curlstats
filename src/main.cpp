@@ -149,7 +149,7 @@ void read( std::istream& in ) {
         curl_error_map[curl.curl_error]++;
         if ( curl.curl_error == 0 ) {
           http_code_map[curl.http_code]++;
-          if ( curl.http_code >= 500 ) http_error_list.push_back( curl );
+          if ( curl.http_code >= 400 ) http_error_list.push_back( curl );
           TimeKey tkey = TimeKey( curl.datetime.hour, curl.datetime.minute );
           DateKey dkey = DateKey( curl.datetime.year, curl.datetime.month, curl.datetime.day );
           if ( curl.total_time >= options.min_duration ) {
@@ -475,7 +475,7 @@ void summary_http_errors() {
   heading( "HTTP return codes" );
   cout << setw(9) << "#probes" << " " << "code" << endl;
   for ( auto h : http_code_map ) {
-    cout << FIXEDINT << h.second << " " << HTTPError2String( h.first ) << endl;
+    cout << FIXEDINT << h.second << " " << HTTPCode2String( h.first ) << endl;
   }
   if ( http_error_list.size() ) {
     cout << endl << "list of HTTP errors" << endl;

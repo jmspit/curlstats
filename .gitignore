@@ -3,4 +3,5 @@ build/
 data/
 full_stats.txt
 src/refresh.sh
+*.gch
 
