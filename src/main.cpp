@@ -187,9 +187,8 @@ void read( std::istream& in ) {
 
             slow_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
           }
-          if ( globalstats.items == 0 || curl.total_time < globalstats.response_min ) globalstats.response_min = curl.total_time;
-          if ( globalstats.items == 0 || curl.total_time > globalstats.response_max ) globalstats.response_max = curl.total_time;
           globalstats.total_time += curl.total_time;
+          globalstats.response_stats.addValue( curl.total_time );
 
           if ( options.hasMode( omHistograms ) ) {
             dns_buckets[ bucket( curl.getWaitClassDuration( wcDNS ), options.time_bucket ) ]++;
@@ -281,17 +280,19 @@ void summary_slowtrail() {
   }
 }
 
-void show_histogram( const map<double,size_t> &histo ) {
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << setw(7) << "pctile" <<endl;
+void show_histogram( const map<double,size_t> &histo, const QtyStats& ref ) {
+  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << setw(7) << "pctile" << setw(8) << "sigma" << endl;
   double percentile = 0.0;
   for ( auto b : histo ) {
     double pct = b.second/(double)globalstats.items*100.0;
     percentile += pct;
+    double sigma = (b.first - options.time_bucket - ref.getAverage())/ref.getSigma();
     if ( pct >= options.histo_min_pct ) {
       cout << "<" << FIXED3W7 << b.first;
       cout << "s " << FIXEDINT << b.second;
       cout << " " << FIXEDPCT << pct;
-      cout << " " << FIXEDPCT << percentile << endl;
+      cout << " " << FIXEDPCT << percentile;
+      cout << " " << FIXED3W7 << sigma << endl;
     }
   }
 }
@@ -301,33 +302,33 @@ void summary_histo() {
   cout << FIXED3 << 100.0 - (double)globalstats.items_slow / (double)globalstats.items * 100.0 << "% ";
   cout << "of probes return within " << FIXED3 << options.min_duration << "s" << endl;
 
-  cout << endl << "probe count to response time distribution, bucket size " << options.time_bucket << "s" << endl;
-  show_histogram( all_buckets );
+  cout << endl << "probe count to response time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
+  show_histogram( all_buckets, globalstats.response_stats );
 
-  cout << endl << "probe count to DNS wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  show_histogram( dns_buckets );
+  cout << endl << "probe count to DNS wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
+  show_histogram( dns_buckets, globalstats.wait_class_stats.namelookup );
 
-  cout << endl << "probe count to TCP wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  show_histogram( tcp_buckets );
+  cout << endl << "probe count to TCP wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
+  show_histogram( tcp_buckets, globalstats.wait_class_stats.connect );
 
-  cout << endl << "probe count to TLS wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  show_histogram( tls_buckets );
+  cout << endl << "probe count to TLS wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
+  show_histogram( tls_buckets, globalstats.wait_class_stats.appconnect );
 
-  cout << endl << "probe count to REQ wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  show_histogram( req_buckets );
+  cout << endl << "probe count to REQ wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
+  show_histogram( req_buckets, globalstats.wait_class_stats.pretransfer );
 
-  cout << endl << "probe count to RSP wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  show_histogram( rsp_buckets );
+  cout << endl << "probe count to RSP wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
+  show_histogram( rsp_buckets, globalstats.wait_class_stats.starttransfer );
 
-  cout << endl << "probe count to DAT wait time distribution, bucket size " << options.time_bucket << "s" << endl;
-  show_histogram( dat_buckets );
+  cout << endl << "probe count to DAT wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
+  show_histogram( dat_buckets, globalstats.wait_class_stats.endtransfer );
 }
 
 void summary_wait_class() {
   heading( "Slow (" + options.slowString() + ") probe to wait-class distribution" );
   cout << setw(5) << "class";
   cout << setw(10) << "#probes";
-  cout << setw(8) << "%blame";
+  cout << setw(8) << "%time";
   cout << setw(8) << "min";
   cout << setw(8) << "max";
   cout << setw(8) << "avg";
@@ -346,7 +347,7 @@ void summary_slow_probes_to_dow() {
   cout << setw(9) << "day";
   cout << setw(7) << "%slow";
   cout << setw(8) << "avg";
-  cout << setw(6) << "blame";
+  cout << setw(6) << "most";
   cout << " ----------DNS----------";
   cout << " ----------TCP----------";
   cout << " ----------TLS----------";
@@ -403,7 +404,7 @@ void summary_slow_probes_to_daily() {
   cout << setw(4) << "hh:mm";
   cout << setw(7) << "%slow";
   cout << setw(8) << "avg";
-  cout << setw(6) << "blame";
+  cout << setw(6) << "most";
   cout << " ----------DNS----------";
   cout << " ----------TCP----------";
   cout << " ----------TLS----------";
@@ -535,15 +536,17 @@ void summary_global_stats() {
   double global_avg_response = globalstats.total_time / globalstats.items;
   double global_opt_response = globalstats.wait_class_stats.getOptimalResponse();
 
-  cout << "average response time: " << FIXED3 << global_avg_response << "s";
+  cout << "average response     : " << FIXED3 << global_avg_response << "s";
   cout << " (" << consistencyVerdict( global_avg_response,
                                       (global_avg_response - global_opt_response),
-                                      globalstats.response_min,
-                                      globalstats.response_max ) << ")" << endl;
+                                      globalstats.response_stats.min,
+                                      globalstats.response_stats.max ) << ")" << endl;
   cout << "ideal response       : " << FIXED3 << global_opt_response << "s" << endl;
-  cout << "min / max response   : " << FIXED3 << globalstats.response_min << "s";
-  cout << " / " << globalstats.response_max << "s" << endl;
-  cout << "estimate network RTT : " << FIXED3 << globalstats.wait_class_stats.getNetworkRoundtrip()*1000.0 << "ms " << endl;
+  cout << "min/max/sdev response: " << FIXED3 << globalstats.response_stats.min;
+  cout << "/" << globalstats.response_stats.max;
+  cout << "/" << globalstats.response_stats.getSigma() << "s" << endl;
+  cout << "estimate network RTT : " << FIXED3 << globalstats.wait_class_stats.getNetworkRoundtrip()*1000.0 << "ms" << endl;
+
   cout << setw(4) << "class";
   cout << setw(8) << "%slow";
   cout << setw(8) << "min";
@@ -551,51 +554,76 @@ void summary_global_stats() {
   cout << setw(8) << "avg";
   cout << setw(8) << "stddev";
   cout << setw(8) << "%rtrip";
-  cout << setw(13) << "consistency";
+  const unsigned int consistency_width = 20;
+  const std::string inconstr = "";
+  cout << setw(consistency_width) << "consistency";
   cout << endl;
   cout << setw(5) << waitClass2String( wcDNS ) << " "
        << FIXED3W7 << (double)slow_map[wcDNS].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.namelookup.asString(true) << " "
-       << FIXEDPCT << globalstats.wait_class_stats.namelookup.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.namelookup.consistency()
-       <<  endl;
+       << FIXEDPCT << globalstats.wait_class_stats.namelookup.total / globalstats.total_time * 100.0;
+  if ( globalstats.wait_class_stats.namelookup.total / globalstats.total_time * 100.0 > 1.0 )
+	cout << setw(consistency_width) << globalstats.wait_class_stats.namelookup.consistency();
+  else
+	cout << setw(consistency_width) << inconstr;
+  cout <<  endl;
+
   cout << setw(5) <<  waitClass2String( wcTCPHandshake ) << " "
        << FIXED3W7 << (double)slow_map[wcTCPHandshake].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.connect.asString(true) << " "
-       << FIXEDPCT << globalstats.wait_class_stats.connect.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.connect.consistency()
-       <<  endl;
+       << FIXEDPCT << globalstats.wait_class_stats.connect.total / globalstats.total_time * 100.0;
+  if ( globalstats.wait_class_stats.connect.total / globalstats.total_time * 100.0 > 1.0 )
+	cout << setw(consistency_width) << globalstats.wait_class_stats.connect.consistency();
+  else
+	cout << setw(consistency_width) << inconstr;
+  cout <<  endl;
+
   cout << setw(5) <<  waitClass2String( wcSSLHandshake ) << " "
        << FIXED3W7 << (double)slow_map[wcSSLHandshake].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.appconnect.asString(true) << " "
-       << FIXEDPCT << globalstats.wait_class_stats.appconnect.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.appconnect.consistency()
-       <<  endl;
+       << FIXEDPCT << globalstats.wait_class_stats.appconnect.total / globalstats.total_time * 100.0;
+  if ( globalstats.wait_class_stats.appconnect.total / globalstats.total_time * 100.0 > 1.0 )
+	cout << setw(consistency_width) << globalstats.wait_class_stats.appconnect.consistency();
+  else
+	cout << setw(consistency_width) << inconstr;
+  cout <<  endl;
+
   cout << setw(5) <<  waitClass2String( wcSendStart ) << " "
        << FIXED3W7 << (double)slow_map[wcSendStart].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.pretransfer.asString(true) << " "
-       << FIXEDPCT<< globalstats.wait_class_stats.pretransfer.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.pretransfer.consistency()
-       <<  endl;
+       << FIXEDPCT<< globalstats.wait_class_stats.pretransfer.total / globalstats.total_time * 100.0;
+  if ( globalstats.wait_class_stats.pretransfer.total / globalstats.total_time * 100.0 > 1.0 )
+	cout << setw(consistency_width) << globalstats.wait_class_stats.pretransfer.consistency();
+  else
+	cout << setw(consistency_width) << inconstr;
+  cout <<  endl;
+
   cout << setw(5) <<  waitClass2String( wcWaitEnd ) << " "
        << FIXED3W7 << (double)slow_map[wcWaitEnd].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.starttransfer.asString(true) << " "
-       << FIXEDPCT << globalstats.wait_class_stats.starttransfer.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.starttransfer.consistency()
-       <<  endl;
+       << FIXEDPCT << globalstats.wait_class_stats.starttransfer.total / globalstats.total_time * 100.0;
+  if ( globalstats.wait_class_stats.starttransfer.total / globalstats.total_time * 100.0 > 1.0 )
+	cout << setw(consistency_width) << globalstats.wait_class_stats.starttransfer.consistency();
+  else
+	cout << setw(consistency_width) << inconstr;
+  cout <<  endl;
+
   cout << setw(5) <<  waitClass2String( wcReceiveEnd ) << " "
        << FIXED3W7 << (double)slow_map[wcReceiveEnd].items / (double)globalstats.items * 100.0 << " "
        << globalstats.wait_class_stats.endtransfer.asString(true) << " "
-       << FIXEDPCT << globalstats.wait_class_stats.endtransfer.total / globalstats.total_time * 100.0
-       << setw(13) << globalstats.wait_class_stats.endtransfer.consistency()
-       <<  endl;
+       << FIXEDPCT << globalstats.wait_class_stats.endtransfer.total / globalstats.total_time * 100.0;
+  if ( globalstats.wait_class_stats.endtransfer.total / globalstats.total_time * 100.0 > 1.0 )
+	cout << setw(consistency_width) << globalstats.wait_class_stats.endtransfer.consistency();
+  else
+	cout << setw(consistency_width) << inconstr;
+  cout <<  endl;
 }
 
 void summary_abnormal() {
   if ( globalstats.wait_class_stats.namelookup.getAverage() > 2.0 * globalstats.wait_class_stats.connect.getAverage() ) {
-    globalstats.findings.push_back( "DNS is slow compared to TCP" );
+    globalstats.findings.push_back( "DNS is slow compared to TCP handshakes" );
   }
-  if ( globalstats.wait_class_stats.appconnect.getAverage() > 14.0 * globalstats.wait_class_stats.connect.getAverage() ) {
+  if ( globalstats.wait_class_stats.appconnect.getAverage() > 6.0 * globalstats.wait_class_stats.connect.getAverage() ) {
     globalstats.findings.push_back( "TLS is expensive compared to TCP" );
   }
   if ( globalstats.findings.size() > 0 ) {

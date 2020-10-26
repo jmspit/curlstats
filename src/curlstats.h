@@ -12,7 +12,7 @@ using namespace std;
 #define FIXEDINT fixed << setfill(' ') << setprecision(0) << setw(9)
 #define FIXEDPCT fixed << setfill(' ') << setprecision(2) << setw(6)
 
-#define DEFAULT_DAY_BUCKET 30
+#define DEFAULT_DAY_BUCKET 60
 #define DEFAULT_MIN_DURATION 1.0
 #define DEFAULT_TIME_BUCKET 0.2
 #define DEFAULT_TIMING_DETAIL false
@@ -78,23 +78,28 @@ struct Options {
 
 
 string consistencyVerdict( double avg, double sdev, double min, double max ) {
-  double ratio = 1000;
-  double vsigma5 = sdev*5.0;
-  double scaler = 1.2;
-  if ( sdev > 0.0 ) ratio = scaler * ( 2.0 * (vsigma5/max) + 3.0 * (avg/sdev) + 1.0 * avg/(max-min) ) / 6.0;
+  // what is the relation between minimum=ideal and the average?
+  double above_ideal_ratio = 1.0;
+  if ( min > 0.0 ) above_ideal_ratio = (avg - min) / min;
+
+  // what is the relation between the spread (max-min) and the standard deviation?
+  double sdev_spread_ratio = 1.0;
+  if ( (avg - min)  > 0.0 ) sdev_spread_ratio = sdev / (avg - min);
+
+  double score = above_ideal_ratio * sdev_spread_ratio;
+
   stringstream ss;
-
-  if ( ratio < 0.04 ) ss << "abysmal";
-  else if ( ratio < 0.08 ) ss << "awful";
-  else if ( ratio < 0.1 ) ss << "bad";
-  else if ( ratio < 0.2 ) ss << "poor";
-  else if ( ratio < 0.3 ) ss << "mediocre";
-  else if ( ratio < 1.2 ) ss << "fair";
-  else if ( ratio < 2.5 ) ss << "good";
-  else if ( ratio < 12.0 ) ss << "excellent";
+  if ( score > 35.0 ) ss << "abysmal";
+  else if ( score > 20.0 ) ss << "awful";
+  else if ( score > 14.0 ) ss << "bad";
+  else if ( score > 8.0 ) ss << "poor";
+  else if ( score > 3.0 ) ss << "mediocre";
+  else if ( score > 1.0 ) ss << "fair";
+  else if ( score > 0.2 ) ss << "good";
+  else if ( score > 0.05 ) ss << "excellent";
   else ss << "phenomenal";
-
-  //ss << " " << setprecision(2) << setw(7) << fixed << ratio;
+  ss << fixed << setprecision(2);
+  ss << " (" << above_ideal_ratio * sdev_spread_ratio << ")";
 
   return ss.str();
 }
@@ -162,7 +167,7 @@ struct QtyStats {
 
   double getSigma() const {
     double sdev = 0;
-    if ( items ) sdev = sqrt( ( squared_total / (double)items - getAverage()*getAverage() ) );
+    if ( items ) sdev = sqrt( ( squared_total / (double)items ) - getAverage()*getAverage() );
     return sdev;
   }
 
@@ -274,7 +279,7 @@ struct WaitClassStats {
   }
 
   double getNetworkRoundtrip() const {
-    return connect.getAverage() / 1.5;
+    return connect.min / 1.5;
   }
 
   int getTLSRoundTrips() const {
@@ -390,14 +395,17 @@ struct GlobalStats {
     total_time(0),
     total_slow_time(0),
     first_time(),
-    last_time(),
-    response_min(0.0),
-    response_max(0.0) {};
+    last_time() {};
 
   /**
    * Global WaitClassStats
    */
   WaitClassStats wait_class_stats;
+
+  /**
+   * HTTP (total) response statistics
+   */
+  QtyStats response_stats;
 
   /**
    * The number of items (probes).
@@ -443,9 +451,6 @@ struct GlobalStats {
    * Aggregate download size
    */
   size_t size_download;
-
-  double response_min;
-  double response_max;
 };
 
 /**
@@ -749,7 +754,7 @@ struct CURL {
     if ( curl_error != 0 ) {
 	  ss << curlError2String(curl_error) << " ";
 	} else {
-      ss << "roundtrip : " << FIXED3 << total_time << "s blame " << waitClass2String( getDominantWaitClass() ) << " ";
+      ss << "roundtrip : " << FIXED3 << total_time << "s most " << waitClass2String( getDominantWaitClass() ) << " ";
       ss << fixed << FIXEDPCT << getWaitClassPct( getDominantWaitClass() ) << "% | ";
       ss << waitClass2String( wcDNS ) << "=" << FIXED3 << getWaitClassDuration( wcDNS ) << "s, ";
       ss << waitClass2String( wcTCPHandshake ) << "=" << FIXED3 << getWaitClassDuration( wcTCPHandshake ) << "s, ";

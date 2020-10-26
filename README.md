@@ -97,13 +97,13 @@ see https://github.com/jmspit/curlstats
 
 usage:
   -b seconds
-     (real) response time histogram bucket in seconds (-o histo)
+     (floating point) response time histogram bucket in seconds (-o histo)
      default: 0.2 seconds
   -d threshold
-     (real) specify a slow threshold in seconds
+     (floating point) specify a slow threshold in seconds
      default: 1 seconds
   -o option
-     limit the output, multiple options can be given by repeating -o
+     (string) limit the output, multiple options can be given by repeating -o
        24hmap     : show 24h map of all probes
        24hslowmap : show 24h map of slow probes
        comments   : show comments from input
@@ -118,17 +118,17 @@ usage:
        wdslowmap  : show weekday map of slow probes
      default: 'all'
   -p threshold
-     only show histogram buckets with % total probes larger than this value (-o histo)
-     default: 0 %
+     (floating point) only show histogram buckets with % total probes larger than this value (-o histo)
+     default: 0 (%)
   -T minutes
-     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 ) (-o 24hmap, 24hslowmap)
+     (unsigned int) 24 hour time bucket in minutes ( 0 < x <= 60 ) (-o 24hmap, 24hslowmap)
      default: 30 minutes
 ```
 
 
 ## Build
 
-requires cmake and c++-17 capable C++ compiler stack.
+requires cmake and a c++-17 capable C++ compiler stack.
 
 ```
 $ git clone git@github.com:jmspit/curlstats.git
@@ -149,14 +149,13 @@ To analyze performance (or the lack thereof), a good data set is key. A good dat
     - covering full 24 hour
     - covering all days of a week
     - covering multiple weeks
-  - is isolated from effects that impact but do not relate to the analysis, such as sampling from a unstable source.
+  - is isolated from effects that impact the measurements but do not relate to the analyzed problem, such as sampling from a unstable source.
 
 There is little point in probing very frequently, say 10 up to 30 seconds intervals are fine if one seeks the ability
 to pinpoint recurring problems with adequate accuracy. Even higher values can be used to at least spot problems that
 can be investigated with more detail.
 
-Often, IT related problems correlate with days-of-week and time-of-day as they are patterns in human behavior
-(work, sleep, weekend, backups, maintenance, ...). If problem effects are seen but its cause hard to locate
+Often, IT related problems correlate with days-of-week and time-of-day as they are patterns in human behavior (work, sleep, weekend, backups, maintenance, ...). If problem effects are seen but its cause hard to locate
 it can be essential to pinpoint the exact times at which they occur. Or, conversely, by looking for such
 patterns they are not to be seen - meaning the problem is truly consistent (even if it is consistently random).
 
@@ -518,4 +517,3 @@ class   %slow     min     max     avg  stddev  %rtrip  consistency
   DAT   0.000   0.000   0.005   0.000   0.000    0.12          n/a
 
 ```
-
