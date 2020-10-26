@@ -12,7 +12,16 @@
 #include <string.h>
 #include <cmath>
 
-#include "curlstats.h"
+#include "curl.h"
+#include "datekey.h"
+#include "datetime.h"
+#include "globalstats.h"
+#include "options.h"
+#include "output.h"
+#include "qtystats.h"
+#include "timekey.h"
+#include "util.h"
+#include "waitclass.h"
 
 using namespace std;
 
@@ -359,7 +368,7 @@ void summary_slow_probes_to_dow() {
     cout << setw(9) << dowStr(d.first) << " ";
     cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_dow_map[d.first].getNumItems() * 100.0 << " ";
     cout << FIXED3W7 << slow_dow_map[d.first].avgResponse() << " ";
-    cout << setw(5) << waitClass2String( slow_dow_map[d.first].blame() ) << " ";
+    cout << setw(5) << waitClass2String( slow_dow_map[d.first].most() ) << " ";
     cout << slow_dow_map[d.first].namelookup.asString();
     cout << slow_dow_map[d.first].connect.asString();
     cout << slow_dow_map[d.first].appconnect.asString();
@@ -387,7 +396,7 @@ void summary_all_probes_to_dow() {
     cout << setw(9) << dowStr(d.first) << " ";
     cout << FIXEDPCT << (double)slow_dow_map[d.first].getNumItems() / (double)d.second.getNumItems() * 100.0 << " ";
     cout << FIXED3W7 << total_dow_map[d.first].avgResponse() << " ";
-    cout << setw(5) << waitClass2String( total_dow_map[d.first].blame() ) << " ";
+    cout << setw(5) << waitClass2String( total_dow_map[d.first].most() ) << " ";
     cout << total_dow_map[d.first].namelookup.asString();
     cout << total_dow_map[d.first].connect.asString();
     cout << total_dow_map[d.first].appconnect.asString();
@@ -417,7 +426,7 @@ void summary_slow_probes_to_daily() {
          << fixed << setw(2) << setfill('0') << d.first.minute << " ";
     cout << FIXEDPCT << (double)d.second.getNumItems() / (double)total_day_map[d.first].getNumItems() * 100.0 << " ";
     cout << FIXED3W7 << slow_day_map[d.first].avgResponse() << " ";
-    cout << setw(5) << waitClass2String( slow_day_map[d.first].blame() ) << " ";
+    cout << setw(5) << waitClass2String( slow_day_map[d.first].most() ) << " ";
     cout << slow_day_map[d.first].namelookup.asString();
     cout << slow_day_map[d.first].connect.asString();
     cout << slow_day_map[d.first].appconnect.asString();
@@ -447,7 +456,7 @@ void summary_all_probes_to_daily() {
          << fixed << setw(2) << setfill('0') << d.first.minute << " ";
     cout << FIXEDPCT << (double)slow_day_map[d.first].getNumItems() / (double)d.second.getNumItems() * 100.0 << " ";
     cout << FIXED3W7 << total_day_map[d.first].avgResponse() << " ";
-    cout << setw(5) << waitClass2String( total_day_map[d.first].blame() ) << " ";
+    cout << setw(5) << waitClass2String( total_day_map[d.first].most() ) << " ";
     cout << total_day_map[d.first].namelookup.asString();
     cout << total_day_map[d.first].connect.asString();
     cout << total_day_map[d.first].appconnect.asString();
@@ -508,7 +517,7 @@ void summary_daily_history() {
     cout << " ";
     cout << FIXED3W7 << d.second.avgResponse();
     cout << " ";
-    cout << setw(5) << waitClass2String( d.second.blame() );
+    cout << setw(5) << waitClass2String( d.second.most() );
     cout << " ";
     cout << d.second.namelookup.asString();
     cout << d.second.connect.asString();
@@ -537,10 +546,7 @@ void summary_global_stats() {
   double global_opt_response = globalstats.wait_class_stats.getOptimalResponse();
 
   cout << "average response     : " << FIXED3 << global_avg_response << "s";
-  cout << " (" << consistencyVerdict( global_avg_response,
-                                      (global_avg_response - global_opt_response),
-                                      globalstats.response_stats.min,
-                                      globalstats.response_stats.max ) << ")" << endl;
+  cout << " (" << globalstats.response_stats.consistency() << ")" << endl;
   cout << "ideal response       : " << FIXED3 << global_opt_response << "s" << endl;
   cout << "min/max/sdev response: " << FIXED3 << globalstats.response_stats.min;
   cout << "/" << globalstats.response_stats.max;
