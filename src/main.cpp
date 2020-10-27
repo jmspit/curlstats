@@ -71,46 +71,6 @@ map<DateKey,WaitClassStats> total_date_map;
 map<DateKey,WaitClassStats> slow_date_map;
 
 /**
- * Map slow probes to duration buckets.
- */
-map<double,size_t> slow_buckets;
-
-/**
- * Map all probes to duration buckets.
- */
-map<double,size_t> all_buckets;
-
-/**
- * Map all DNS to duration buckets.
- */
-map<double,size_t> dns_buckets;
-
-/**
- * Map all TCP to duration buckets.
- */
-map<double,size_t> tcp_buckets;
-
-/**
- * Map all TLS to duration buckets.
- */
-map<double,size_t> tls_buckets;
-
-/**
- * Map all REQ to duration buckets.
- */
-map<double,size_t> req_buckets;
-
-/**
- * Map all RSP to duration buckets.
- */
-map<double,size_t> rsp_buckets;
-
-/**
- * Map all DAT to duration buckets.
- */
-map<double,size_t> dat_buckets;
-
-/**
  * Map probe count to curl error code
  */
 map<uint16_t,size_t> curl_error_map;
@@ -194,19 +154,9 @@ void read( std::istream& in ) {
               slow_date_map[dkey].addValue( wcReceiveEnd, curl.getWaitClassDuration( wcReceiveEnd ) );
             }
 
-            slow_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
           }
           globalstats.total_time += curl.total_time;
           globalstats.response_stats.addValue( curl.total_time );
-
-          if ( options.hasMode( omHistograms ) ) {
-            dns_buckets[ bucket( curl.getWaitClassDuration( wcDNS ), options.time_bucket ) ]++;
-            tcp_buckets[ bucket( curl.getWaitClassDuration( wcTCPHandshake ), options.time_bucket ) ]++;
-            tls_buckets[ bucket( curl.getWaitClassDuration( wcSSLHandshake ), options.time_bucket ) ]++;
-            req_buckets[ bucket( curl.getWaitClassDuration( wcSendStart ), options.time_bucket ) ]++;
-            rsp_buckets[ bucket( curl.getWaitClassDuration( wcWaitEnd ), options.time_bucket ) ]++;
-            dat_buckets[ bucket( curl.getWaitClassDuration( wcReceiveEnd ), options.time_bucket ) ]++;
-          }
 
           globalstats.wait_class_stats.namelookup.addValue( curl.getWaitClassDuration( wcDNS ) );
           globalstats.wait_class_stats.connect.addValue( curl.getWaitClassDuration( wcTCPHandshake ) );
@@ -246,7 +196,6 @@ void read( std::istream& in ) {
             globalstats.first_time = curl.datetime;
           if ( globalstats.last_time.year == 0 ||  curl.datetime > globalstats.last_time )
             globalstats.last_time = curl.datetime;
-          all_buckets[ bucket( curl.total_time, options.time_bucket ) ]++;
 
           globalstats.size_upload += curl.size_upload;
           globalstats.size_download += curl.size_download;
@@ -289,15 +238,15 @@ void summary_slowtrail() {
   }
 }
 
-void show_histogram( const map<double,size_t> &histo, const QtyStats& ref ) {
-  cout << setw(9) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << setw(7) << "pctile" << setw(8) << "sigma" << endl;
+void show_histogram( const QtyStats& ref ) {
+  cout << setw(10) << "bucket" << " " << setw(9) << "count" << setw(7) << "%probe" << setw(7) << "pctile" << setw(8) << "sigma" << endl;
   double percentile = 0.0;
-  for ( auto b : histo ) {
+  for ( auto b : ref.buckets ) {
     double pct = b.second/(double)globalstats.items*100.0;
     percentile += pct;
-    double sigma = (b.first - options.time_bucket - ref.getAverage())/ref.getSigma();
+    double sigma = (b.first - ref.getAverage())/ref.getSigma();
     if ( pct >= options.histo_min_pct ) {
-      cout << "<" << FIXED3W7 << b.first;
+      cout << "<" << setprecision(6) << b.first;
       cout << "s " << FIXEDINT << b.second;
       cout << " " << FIXEDPCT << pct;
       cout << " " << FIXEDPCT << percentile;
@@ -311,26 +260,26 @@ void summary_histo() {
   cout << FIXED3 << 100.0 - (double)globalstats.items_slow / (double)globalstats.items * 100.0 << "% ";
   cout << "of probes return within " << FIXED3 << options.min_duration << "s" << endl;
 
-  cout << endl << "probe count to response time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
-  show_histogram( all_buckets, globalstats.response_stats );
+  cout << endl << "probe count to total response time distribution, bucket size " << setprecision(6) << globalstats.response_stats.current_bucket << "s" << endl;
+  show_histogram( globalstats.response_stats );
 
-  cout << endl << "probe count to DNS wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
-  show_histogram( dns_buckets, globalstats.wait_class_stats.namelookup );
+  cout << endl << "probe count to DNS wait time distribution, bucket size " << setprecision(6) << globalstats.wait_class_stats.namelookup.current_bucket << "s" << endl;
+  show_histogram( globalstats.wait_class_stats.namelookup );
 
-  cout << endl << "probe count to TCP wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
-  show_histogram( tcp_buckets, globalstats.wait_class_stats.connect );
+  cout << endl << "probe count to TCP wait time distribution, bucket size " << setprecision(6) << globalstats.wait_class_stats.connect.current_bucket << "s" << endl;
+  show_histogram( globalstats.wait_class_stats.connect );
 
-  cout << endl << "probe count to TLS wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
-  show_histogram( tls_buckets, globalstats.wait_class_stats.appconnect );
+  cout << endl << "probe count to TLS wait time distribution, bucket size " << setprecision(6) << globalstats.wait_class_stats.appconnect.current_bucket << "s" << endl;
+  show_histogram( globalstats.wait_class_stats.appconnect );
 
-  cout << endl << "probe count to REQ wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
-  show_histogram( req_buckets, globalstats.wait_class_stats.pretransfer );
+  cout << endl << "probe count to REQ wait time distribution, bucket size " << setprecision(6) << globalstats.wait_class_stats.pretransfer.current_bucket << "s" << endl;
+  show_histogram( globalstats.wait_class_stats.pretransfer );
 
-  cout << endl << "probe count to RSP wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
-  show_histogram( rsp_buckets, globalstats.wait_class_stats.starttransfer );
+  cout << endl << "probe count to RSP wait time distribution, bucket size " << setprecision(6) << globalstats.wait_class_stats.starttransfer.current_bucket << "s" << endl;
+  show_histogram( globalstats.wait_class_stats.starttransfer );
 
-  cout << endl << "probe count to DAT wait time distribution, bucket size " << FIXED3 << options.time_bucket << "s" << endl;
-  show_histogram( dat_buckets, globalstats.wait_class_stats.endtransfer );
+  cout << endl << "probe count to DAT wait time distribution, bucket size " << setprecision(6) << globalstats.wait_class_stats.endtransfer.current_bucket << "s" << endl;
+  show_histogram( globalstats.wait_class_stats.endtransfer );
 }
 
 void summary_wait_class() {

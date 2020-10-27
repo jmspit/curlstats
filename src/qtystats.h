@@ -12,6 +12,9 @@ using namespace std;
  */
 struct QtyStats {
 
+  const size_t max_buckets = 30;
+  const double initial_bucket = 1.0E-6;
+
   /**
    * Construct and init defaults.
    */
@@ -19,13 +22,19 @@ struct QtyStats {
     min(0.0),
     max(0.0),
     total(0.0),
-    squared_total(0.0),
+    _M(0.0),
+    _C(0.0),
+    current_bucket(initial_bucket),
     items(0) {};
 
   double min;
   double max;
   double total;
-  double squared_total;
+  double _M = 0;
+  double _C = 0;
+
+  double current_bucket;
+  map<double,size_t> buckets;
   size_t items;
 
   /**
@@ -37,9 +46,28 @@ struct QtyStats {
     //if ( ( items == 0 || d < min ) && d > 0.0 ) min = d;
     if ( ( items == 0 || d < min ) ) min = d;
     if ( items == 0 || d > max ) max = d;
+    if ( items == 0 ) {
+      _M = d;
+      _C = 0.0;
+      items++;      
+    } else {
+      items++;
+      double delta = d - _M;
+      _M += delta / items;
+      _C += delta * (d - _M);
+    }
     total += d;
-    squared_total += d*d;
-    items++;
+    buckets[ bucket( d, current_bucket ) ]++;
+    if ( buckets.size() > max_buckets ) reBucket();
+  }
+
+  void reBucket() {
+    current_bucket *= 10.0;
+    map<double,size_t> tmp;
+    for ( const auto& old : buckets ) {
+      tmp[ bucket( old.first, current_bucket ) ] += old.second;
+    }
+    buckets = tmp;
   }
 
   /**
@@ -50,12 +78,9 @@ struct QtyStats {
     stringstream ss;
     ss << FIXED3W7 << min << " ";
     ss << FIXED3W7 << max << " ";
-    double average = total / (double)items;
-    ss << FIXED3W7 << average << " ";
+    ss << FIXED3W7 << getAverage() << " ";
     if ( stddev ) {
-      double sdev = 0;
-      if ( items ) sdev = sqrt( ( squared_total / (double)items - average*average ) );
-      ss << FIXED3W7 << sdev << " ";
+      ss << FIXED3W7 << getSigma() << " ";
     }
     return ss.str();
   }
@@ -91,12 +116,12 @@ struct QtyStats {
   }  
 
   double getAverage() const {
-    return total / (double)items;
+    return _M;
   }
 
   double getSigma() const {
     double sdev = 0;
-    if ( items ) sdev = sqrt( ( squared_total / (double)items ) - getAverage()*getAverage() );
+    if ( items > 1 ) sdev = sqrt( _C / ( items - 1) );
     return sdev;
   }
 
