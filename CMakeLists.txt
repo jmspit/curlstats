@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 add_compile_options( -Wall -std=c++17 )
 
-project(curlstats)
+set( PROJECT "curlstats")
+
+project(${PROJECT})
 
 set ( release_tag "0.0.1" )
 
@@ -33,3 +35,23 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}
 
 
 add_executable( curlstats ${curlstats_objects} )
+
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/src/Doxyfile.in)
+    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+    # request to configure the file
+    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+    message( STATUS "Doxygen configured")
+
+    # note the option ALL which allows to build the docs together with the application
+    add_custom_target( doc
+        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/doxygen && ${DOXYGEN_EXECUTABLE} -d markdown ${DOXYGEN_OUT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM )
+
+else (DOXYGEN_FOUND)
+  message("Doxygen need to be installed to generate the doxygen documentation")
+endif (DOXYGEN_FOUND)
