@@ -5,9 +5,9 @@
 #include "waitclass.h"
 
 /**
- * Curl statistics line.
+ * Curl probe line.
  */
-struct CURL {
+struct CURLProbe {
   DateTime  datetime;
   uint16_t  curl_error;
   uint16_t  http_code;

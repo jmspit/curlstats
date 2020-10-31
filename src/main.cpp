@@ -85,17 +85,17 @@ map<WaitClass,size_t> wait_class_map;
 /**
  * All probes with curl errors
  */
-list<CURL> curl_error_list;
+list<CURLProbe> curl_error_list;
 
 /**
  * All probes with http errors
  */
-list<CURL> http_error_list;
+list<CURLProbe> http_error_list;
 
 /**
  * All slow probes
  */
-list<CURL> slow_repsonse_list;
+list<CURLProbe> slow_repsonse_list;
 
 /**
  * Comments
@@ -110,7 +110,7 @@ void read( std::istream& in ) {
   getline( in, line );
   while ( in.good()  ) {
     if ( !isCommment( line ) ) {
-      CURL curl;
+      CURLProbe curl;
       if ( curl.parse( line ) ) {
         curl_error_map[curl.curl_error]++;
         if ( curl.curl_error == 0 ) { 

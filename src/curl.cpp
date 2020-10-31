@@ -3,7 +3,7 @@
 #include "util.h"
 #include "output.h"
 
-double CURL::getWaitClassDuration( WaitClass wc ) const {
+double CURLProbe::getWaitClassDuration( WaitClass wc ) const {
   switch ( wc ) {
     case wcDNS :
       return time_namelookup;
@@ -28,11 +28,11 @@ double CURL::getWaitClassDuration( WaitClass wc ) const {
   return 0.0;
 };
 
-double CURL::getWaitClassPct( WaitClass wc ) const {
+double CURLProbe::getWaitClassPct( WaitClass wc ) const {
   return getWaitClassDuration( wc ) / total_time*100.0;
 };
 
-WaitClass CURL::getDominantWaitClass() const {
+WaitClass CURLProbe::getDominantWaitClass() const {
   set<WaitClassOrder> ordered;
   ordered.insert( { wcDNS , getWaitClassPct( wcDNS ) } );
   ordered.insert( { wcTCPHandshake , getWaitClassPct( wcTCPHandshake ) } );
@@ -43,7 +43,7 @@ WaitClass CURL::getDominantWaitClass() const {
   return (*ordered.rbegin()).wc;
 };
 
-string CURL::asString() const {
+string CURLProbe::asString() const {
   stringstream ss;
   ss << datetime.asString() << " ";
   if ( curl_error != 0 ) {
@@ -62,7 +62,7 @@ string CURL::asString() const {
   return ss.str();
 };
 
-bool CURL::parse( const string &s ) {
+bool CURLProbe::parse( const string &s ) {
   try {
     vector<string> tokens = split( s, ';' );
     if ( tokens.size() >= 12 ) {
