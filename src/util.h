@@ -10,28 +10,16 @@ using namespace std;
 /**
  * Split a string.
  */
-vector<string> split( const string& src, char delimiter = ';' ) {
-  vector<string> result;
-  istringstream is(src);
-  string s;
-  while ( getline( is, s, delimiter ) ) {
-    result.push_back( s );
-  }
-  return result;
-}
+vector<string> split( const string& src, char delimiter = ';' );
 
 /**
  * Bucket a real value to its ceil (largest integer above).
  */
-double bucket( double v, double bucket ) {
-  return ceil( v / bucket ) * bucket;
-}
+double bucket( double v, double bucket );
 
 /**
  * return true if the line is a comment.
  */
-bool isCommment( const string& s ) {
-  return s.length() == 0 || s[0] == '#';
-}
+bool isCommment( const string& s );
 
 #endif

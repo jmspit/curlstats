@@ -14,7 +14,8 @@ struct GlobalStats {
    * Construct with defaults.
    */
   GlobalStats() :
-    items(0),
+    timed_probes(0),
+    total_probes(0),
     items_slow(0),
     total_time(0),
     total_slow_time(0),
@@ -32,9 +33,14 @@ struct GlobalStats {
   QtyStats response_stats;
 
   /**
-   * The number of items (probes).
+   * The number of timed probes (excluding errors).
    */
-  size_t items;
+  size_t timed_probes;
+
+  /**
+   * The total number of probes (including errors).
+   */
+  size_t total_probes;  
 
   /**
    * The number of slow items (probes).
