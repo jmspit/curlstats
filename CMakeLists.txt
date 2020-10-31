@@ -20,7 +20,7 @@ message( STATUS "CMAKE_VERSION          : ${CMAKE_VERSION}")
 
 
 set(  curlstats_objects
-      src/curl.cpp
+      src/curlprobe.cpp
       src/datetime.cpp
       src/main.cpp
       src/options.cpp

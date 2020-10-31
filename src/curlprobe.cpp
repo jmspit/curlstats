@@ -1,4 +1,4 @@
-#include "curl.h"
+#include "curlprobe.h"
 
 #include "util.h"
 #include "output.h"

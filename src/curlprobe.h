@@ -1,5 +1,5 @@
-#ifndef curl_h
-#define curl_h
+#ifndef curlprobe_h
+#define curlprobe_h
 
 #include "datetime.h"
 #include "waitclass.h"

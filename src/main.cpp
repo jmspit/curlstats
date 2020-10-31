@@ -12,7 +12,7 @@
 #include <string.h>
 #include <cmath>
 
-#include "curl.h"
+#include "curlprobe.h"
 #include "datekey.h"
 #include "datetime.h"
 #include "globalstats.h"
