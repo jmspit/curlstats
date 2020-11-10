@@ -170,13 +170,21 @@ void read( std::istream& in ) {
 int main( int argc, char* argv[] ) {
   try {
     if ( parseArgs( argc, argv, options ) ) {
+      StopWatch sw;
+      sw.start();
       read( cin );
+      sw.stop();
+      double parse_time = sw.getElapsedSeconds();
+      sw.start();
       if ( options.output_format == Options::OutputFormat::Text )
         summary_text();
       else if ( options.output_format == Options::OutputFormat::HTML ) {
         HTML html;
         cout << html.generate();
       }
+      sw.stop();
+      double generation_time = sw.getElapsedSeconds();
+      cerr << fixed << setprecision(3) << "parse " << parse_time << "s generation " << generation_time << "s" << endl;
       return 0;
     } else return 1;
   }

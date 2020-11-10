@@ -143,11 +143,11 @@ $ git clone git@github.com:jmspit/curlstats.git
 $ cd curlstats
 $ mkdir build
 $ cd build
-$ cmake .. -DCMAKE_BUILD_TYPE=RELEASE
-$ make
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
+$ cmake --build . --config Release
 ```
 
-will produce `curlstats` in the build directory. In case your toolchain uses `ninja` instead of make, use `ninja` instead of `make`.
+will produce `curlstats` in the build directory.
 
 ## Statistics
 
