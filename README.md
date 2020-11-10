@@ -159,12 +159,6 @@ To analyze performance (or the lack thereof), a good data set is essential. A go
     - covering multiple weeks
   - is isolated from effects that impact the measurements but do not relate to the analyzed problem, such as sampling from a unstable source.
 
-There is little point in probing very frequently, say 30 to 60 second intervals are fine if one seeks the ability
-to pinpoint recurring problems with adequate accuracy. Even higher values can be used to at least spot problems that
-can be investigated with more detail.
-
-It may be usefull to start one or more reference probes from the probving system to other endpoints, or to start probes from different sources to the same endpoint.
-
 ## Anatomy of a round-trip
 
 Client client/server request/response sequence involves several phases involving a number of network
