@@ -62,9 +62,9 @@ string CURLProbe::asString() const {
   return ss.str();
 };
 
-bool CURLProbe::parse( const string &s ) {
+bool CURLProbe::parse( const string &line ) {
   try {
-    vector<string> tokens = split( s, ';' );
+    vector<string> tokens = split( line, ';' );
     if ( tokens.size() >= 12 ) {
       bool ok = datetime.parse( tokens[0] );
       if ( ! ok ) return false;

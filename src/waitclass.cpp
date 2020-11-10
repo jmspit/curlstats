@@ -4,51 +4,22 @@ bool operator<( const WaitClassOrder& o1, const WaitClassOrder& o2 ) {
   return o1.value < o2.value;
 }
 
-void WaitClassStats::addValue( WaitClass wc, double value ) {
-  size_t compare = 0;
-  switch ( wc ) {
-    case wcDNS:
-      namelookup.addValue( value );
-      break;
-    case wcTCPHandshake:
-      connect.addValue( value );
-      break;
-    case wcSSLHandshake:
-      appconnect.addValue( value );
-      break;
-    case wcSendStart:
-      pretransfer.addValue( value );
-      break;
-    case wcWaitEnd:
-      starttransfer.addValue( value );
-      break;
-    case wcReceiveEnd:
-      endtransfer.addValue( value );
-      compare = endtransfer.items;
-      if ( namelookup.items  != compare ||
-            connect.items     != compare ||
-            appconnect.items  != compare ||
-            pretransfer.items != compare ||
-            starttransfer.items != compare )
-        throw std::runtime_error( "WaitClassStats::addValue WaitClassStats to item count inconsistency" );
-      break;
-    case wcInvalid:
-      throw std::runtime_error("WaitClassStats::addValue invalid WaitClass wcInvalid");
-      break;
-  }
+void ProbeStats::addValues( double vnamelookup, 
+                            double vconnect,
+                            double vappconnect,
+                            double vpretransfer,
+                            double vstarttransfer,
+                            double vendtransfer ) {
+  namelookup.addValue( vnamelookup );                              
+  connect.addValue( vconnect );                              
+  appconnect.addValue( vappconnect );                              
+  pretransfer.addValue( vpretransfer );                              
+  starttransfer.addValue( vstarttransfer );                              
+  endtransfer.addValue( vendtransfer );     
+  probe.addValue( vnamelookup + vconnect + vappconnect + vpretransfer + vstarttransfer + vendtransfer );
 }
 
-double WaitClassStats::avgResponse() const {
-  if ( endtransfer.items > 0 ) return ( namelookup.total +
-                                        connect.total +
-                                        appconnect.total +
-                                        pretransfer.total +
-                                        starttransfer.total +
-                                        endtransfer.total ) / (double)endtransfer.items;
-  else return 0.0;
-}
-
-WaitClass WaitClassStats::most() const {
+WaitClass ProbeStats::most() const {
   set<WaitClassOrder> ordered;
   ordered.insert( WaitClassOrder( wcDNS , namelookup.total ) );
   ordered.insert( { wcTCPHandshake , connect.total } );
@@ -59,7 +30,7 @@ WaitClass WaitClassStats::most() const {
   return (*ordered.rbegin()).wc;
 }
 
-int WaitClassStats::getTLSRoundTrips() const {
+int ProbeStats::getTLSRoundTrips() const {
   return static_cast<int>( floor( appconnect.min / getNetworkRoundtrip() ) );
 }
 

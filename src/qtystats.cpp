@@ -31,7 +31,8 @@ void QtyStats::addValue( double d ) {
     _C += delta * (d - _M);
   }
   total += d;
-  buckets[ bucket( d, current_bucket ) ]++;
+  double buck = bucket( d, current_bucket );
+  buckets[ buck ]++;
   while ( buckets.size() > options.histo_max_buckets ) reBucket();
 }
 
@@ -48,7 +49,7 @@ string QtyStats::asString( bool stddev ) {
   stringstream ss;
   ss << FIXED3W7 << min << " ";
   ss << FIXED3W7 << max << " ";
-  ss << FIXED3W7 << getAverage() << " ";
+  ss << FIXED3W7 << getMean() << " ";
   if ( stddev ) {
     ss << FIXED3W7 << getSigma() << " ";
   }
@@ -56,7 +57,7 @@ string QtyStats::asString( bool stddev ) {
 }
 
 string QtyStats::consistency() {
-  const double avg = getAverage();
+  const double avg = getMean();
   const double sdev = getSigma();
   // what is the relation between minimum=ideal and the average?
   double above_ideal_ratio = 1.0;
@@ -84,7 +85,7 @@ string QtyStats::consistency() {
   return ss.str();
 }  
 
-double QtyStats::getAverage() const {
+double QtyStats::getMean() const {
   return _M;
 }
 

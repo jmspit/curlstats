@@ -5,6 +5,10 @@
 #include "qtystats.h"
 #include "waitclass.h"
 
+#include <list>
+
+using namespace std;
+
 /**
  * Global statistics.
  */
@@ -25,7 +29,7 @@ struct GlobalStats {
   /**
    * Global WaitClassStats
    */
-  WaitClassStats wait_class_stats;
+  ProbeStats wait_class_stats;
 
   /**
    * total response statistics (full request-response cycle)

@@ -20,14 +20,18 @@ message( STATUS "CMAKE_VERSION          : ${CMAKE_VERSION}")
 
 
 set(  curlstats_objects
+      src/comments.cpp
       src/curlprobe.cpp
       src/datetime.cpp
+      src/html.cpp
       src/main.cpp
       src/options.cpp
       src/output.cpp
       src/qtystats.cpp
+      src/text.cpp
       src/waitclass.cpp
       src/util.cpp
+      src/variables.cpp
 )
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}

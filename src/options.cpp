@@ -1,5 +1,7 @@
 #include "options.h"
 
+#include <cstring>
+
 Options options;
 
 void printHelp() {
@@ -13,7 +15,10 @@ void printHelp() {
   cout << "     default: " << DEFAULT_MAX_BUCKETS << " buckets" << endl;
   cout << "  -d threshold" << endl;
   cout << "     (real) specify a slow threshold in seconds" << endl;
-  cout << "     default: " << DEFAULT_MIN_DURATION << " seconds" << endl;
+  cout << "     default: " << DEFAULT_SLOW_DURATION << " seconds" << endl;
+  cout << "  -f format" << endl;
+  cout << "     (text) specify the output format, either 'text' or 'html'" << endl;
+  cout << "     default: 'text'" << endl;
   cout << "  -o option" << endl;
   cout << "     limit the output, multiple options can be given by repeating -o" << endl;
   cout << "       24hmap     : show 24h map of all probes" << endl;
@@ -35,6 +40,10 @@ void printHelp() {
   cout << "  -T minutes" << endl;
   cout << "     (uint) 24 hour time bucket in minutes ( 0 < x <= 60 ) (-o 24hmap, 24hslowmap)" << endl;
   cout << "     default: " << DEFAULT_DAY_BUCKET << " minutes" << endl;
+  cout << "  -W minutes" << endl;
+  cout << "     (uint) 24 hour weekmap time bucket in minutes ( 0 < x <= 60 ). 60 Must be an integer multiple" << endl;
+  cout << "     of this value" << endl;
+  cout << "     default: " << DEFAULT_DAY_BUCKET << " minutes" << endl;  
   cout << endl;
   cout << waitClass2String( wcDNS, true )  << endl;
   cout << waitClass2String( wcTCPHandshake, true )  << endl;
@@ -51,7 +60,7 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
   string mode = "";
   for(;;)
   {
-    switch( getopt(argc, argv, "d:tb:T:p:o:h") )
+    switch( getopt(argc, argv, "d:tb:T:W:p:o:f:h") )
     {
       case 'b':
         try {
@@ -65,7 +74,7 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
         continue;
       case 'd':
         try {
-          options.min_duration = stod( optarg );
+          options.slow_threshold = stod( optarg );
         }
         catch ( const exception& e ) {
           cerr << "invalid -d value '" << optarg << "'" << endl;
@@ -73,6 +82,17 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
           return false;
         }
         continue;
+      case 'f':
+        if ( strncmp( optarg, "text", 4) == 0 ) 
+          options.output_format = Options::OutputFormat::Text;
+        else if ( strncmp( optarg, "html", 4) == 0 ) 
+          options.output_format = Options::OutputFormat::HTML;
+        else {
+          cerr << "invalid output format (-f) '" << optarg << "'" << endl;
+          printHelp();
+          return false;
+        }          
+        continue;        
       case 'o':
         mode = optarg;
         if ( mode == "all" ) options.output_mode |= omAll;
@@ -114,9 +134,27 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
           printHelp();
           return false;
         }
-        if ( options.day_bucket <= 0 ) options.day_bucket = DEFAULT_DAY_BUCKET;
-        if ( options.day_bucket > 60 ) options.day_bucket = DEFAULT_DAY_BUCKET;
+        if ( options.day_bucket <= 0 ||options.day_bucket > 60 ) {
+          cerr << "-T value must be > 0 and <= 60 '" << optarg << "'" << endl;
+          printHelp();
+          return false;
+        }
         continue;
+      case 'W':
+        try {
+          options.weekmap_bucket = stoi( optarg );
+        }
+        catch ( const exception& e ) {
+          cerr << "invalid -w value '" << optarg << "'" << endl;
+          printHelp();
+          return false;
+        }
+        if ( 60 % options.weekmap_bucket != 0 ) {
+          cerr << "60 must be an integer multiple of the -w value '" << optarg << "'" << endl;
+          printHelp();
+          return false;
+        }
+        continue;        
       case '?':
       case 'h':
       default :
@@ -128,5 +166,16 @@ bool parseArgs( int argc, char* argv[], Options &options ) {
     break;
   }
   if ( options.output_mode == omNone ) options.output_mode = omAll;
+  if ( options.output_format == Options::OutputFormat::HTML && options.output_mode != omAll ) {
+    cerr << "cannot specify -o mode with -f html unless mode is 'all'" << endl;
+    return false;
+  }
   return true;
+}
+
+
+bool Options::hasMode( OutputMode mode ) const {
+  unsigned long t = static_cast<unsigned long>(output_mode);
+  unsigned long m = static_cast<unsigned long>(mode);
+  return ((t & m) || (t & omAll));
 }

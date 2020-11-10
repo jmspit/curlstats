@@ -43,6 +43,7 @@ findExecutable hostname HOSTNAME_EXEC
 findExecutable ip IP_EXEC
 findExecutable sleep SLEEP_EXEC
 findExecutable uname UNAME_EXEC
+findExecutable sed SED_EXEC
 
 ${ECHO_EXEC} "# probing resumes = $(date +'%Y-%m-%d %H:%M:%S')"
 ${ECHO_EXEC} "# interval        = ${interval}s"
@@ -51,7 +52,19 @@ ${ECHO_EXEC} "# client kernel   = $(${UNAME_EXEC} -r)"
 if [ -f /etc/os-release ]; then
   ${ECHO_EXEC} "# client OS       = $(${GREP_EXEC} ^PRETTY_NAME /etc/os-release | ${AWK_EXEC} -F\" '{print $2}')"
 fi
-${ECHO_EXEC} "# client IP       = $(${IP_EXEC} route get 1 | ${AWK_EXEC} '{print $(NF-2);exit}')"
+${ECHO_EXEC} "# client IP       = $(${IP_EXEC} -o route get 1 | ${SED_EXEC} -n 's/^.*src \([0-9.]*\) .*$/\1/p' )"
+
+if [ -r /etc/resolv.conf ]; then
+  ${GREP_EXEC} -v '^[[:space:]]*#' /etc/resolv.conf | while read LINE
+  do
+    ${ECHO_EXEC} "# resolv.conf     = ${LINE}"
+  done
+fi
+
+if [ -r /etc/timezone ]; then
+  ${ECHO_EXEC} "# client timezone = $(${CAT_EXEC} /etc/timezone)"
+fi
+
 ${CURL_EXEC} --version | while read LINE
 do
   ${ECHO_EXEC} "# curl            = ${LINE}"
@@ -74,7 +87,9 @@ ${ECHO_EXEC} "# YYYY HH:MI:SS ;\
  ssl handshake ;\
  dns lookup+tcp+ssl handshake;\
  redirect time;\
- time to first byte sent"
+ time to first byte sent;\
+ bytes uploaded;\
+ bytes downloaded"
 while true
 do
   dstamp="$(${DATE_EXEC} '+%Y-%m-%d %H:%M:%S')"

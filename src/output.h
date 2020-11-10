@@ -6,12 +6,24 @@
 
 using namespace std;
 
+/** Short for fixed << setfill(' ') << setprecision(3) */
 #define FIXED3 fixed << setfill(' ') << setprecision(3)
+
+/** Short for fixed << setfill(' ') << setprecision(3) << setw(7) */
 #define FIXED3W7 fixed << setfill(' ') << setprecision(3) << setw(7)
+
+/** Short for fixed << setfill(' ') << setprecision(3) << setw(10) */
 #define FIXED3W10 fixed << setfill(' ') << setprecision(3) << setw(10)
+
+/** Short for fixed << setfill(' ') << setprecision(0) << setw(9) */
 #define FIXEDINT fixed << setfill(' ') << setprecision(0) << setw(9)
+
+/** Short for fixed << setfill(' ') << setprecision(2) << setw(6) */
 #define FIXEDPCT fixed << setfill(' ') << setprecision(2) << setw(6)
 
+/**
+ * Output mode bitmask
+ */
 enum OutputMode : unsigned long {
   omNone                 = 0b0000000000000000, /**< Output nothing */
   omAll                  = 0b0000000000000001, /**< Output everything 'all'*/
@@ -29,10 +41,22 @@ enum OutputMode : unsigned long {
   omSlowWaitClass        = 0b0001000000000000, /**< Output comments 'slowwait' */
 };
 
+/**
+ * Define bitwise OR
+ * @param a The left OutputMode to OR.
+ * @param b The right OutputMode to OR.
+ * @return The OR-ed OutputModes.
+ */
 inline OutputMode operator|( OutputMode a, OutputMode b ) {
   return static_cast<OutputMode>(static_cast<unsigned long>(a) | static_cast<unsigned long>(b));
 }
 
+/**
+ * Bitwise OR a with b and return a refernce to a.
+ * @param a The left OutputMode to OR.
+ * @param b The right OutputMode to OR.
+ * @return A reference to a.
+ */
 inline OutputMode& operator|=( OutputMode &a, OutputMode b ) {
   a = static_cast<OutputMode>(static_cast<unsigned long>(a) | static_cast<unsigned long>(b));
   return a;
@@ -40,21 +64,29 @@ inline OutputMode& operator|=( OutputMode &a, OutputMode b ) {
 
 /**
  * Write a heading.
+ * @param h The heading title.
+ * @param c The heading line character.
+ * @param width The line width.
  */
 void heading( const string &h, char c = '=', int width = 176 );
 
 /**
- * convert a dow-of-week to a string description.
+ * Convert a dow-of-week to a string description.
+ * @param dow The day of week (0=Sunday).
  */
 string dowStr( int dow );
 
 /**
- * convert a HTTP code to a string description.
+ * Convert a HTTP code to a string description.
+ * @param code The HTTP code.
+ * @return The string.
  */
 string HTTPCode2String( uint16_t code );
 
 /**
- * convert a curl error to a string description.
+ * Convert a curl error to a string description.
+ * @param code The curl code.
+ * @return The string.
  */
 string curlError2String( uint16_t code );
 
