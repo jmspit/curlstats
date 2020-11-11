@@ -985,7 +985,7 @@ string colorGradient( double value, double cutoff, double min, double max ) {
     double dr = color_warn.red - color_ok.red;
     double dg = color_warn.green - color_ok.green;
     double db = color_warn.blue - color_ok.blue;
-    double ratio = value / (cutoff-min);
+    double ratio = (value-min) / (cutoff-min);
     //cout << "value < cutoff " << ratio << " min=" << min << "max=" << max << " cutoff=" << cutoff << endl;
     color_this  = { color_ok.red + (int)(dr * ratio),
                     color_ok.green + (int)(dg * ratio),
