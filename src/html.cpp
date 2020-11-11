@@ -4,6 +4,7 @@
 #include "variables.h"
 
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <vector>
 
@@ -26,15 +27,15 @@ const string color_req="109618";
 const string color_rsp="990099";
 const string color_dat="0099c6";
 
-const string wait_class_colors = "['" + color_dns + "','" + color_tcp + "','" + color_tls + 
+const string wait_class_colors = "['" + color_dns + "','" + color_tcp + "','" + color_tls +
                                  "','" + color_req + "','" + color_rsp + "','" + color_dat + "']";
 
-const string color_http_error = "maroon";                                 
-const string color_curl_error = "#dc3912";                                 
-const string color_slow_probe = "orange";                                 
-const string color_good = "#0c5922";                            
-const string color_mean = "#333366";                            
-const string color_stddev = "#aa3333";                            
+const string color_http_error = "maroon";
+const string color_curl_error = "#dc3912";
+const string color_slow_probe = "orange";
+const string color_good = "#0c5922";
+const string color_mean = "#333366";
+const string color_stddev = "#aa3333";
 
 const string chartarea_linechart = "chartArea:{left:80,top:30,bottom:50,right:120,width:'100%',height:'100%'}";
 const string chartarea_piechart  = "chartArea:{left:20,top:20,bottom:20,right:20,width:'100%',height:'100%'}";
@@ -44,7 +45,7 @@ const string chartarea_histogram = "chartArea:{left:80,top:50,bottom:50,right:30
 const string probe_error_colors = "['" + color_good + "','" + color_slow_probe + "','" +
                                   color_curl_error + "','" + color_http_error + "']";
 
-vector<string> error_index_colors = { "#3366cc","#dc3912","#ff9900","#109618","#990099","#0099c6","#dd4477" }; 
+vector<string> error_index_colors = { "#3366cc","#dc3912","#ff9900","#109618","#990099","#0099c6","#dd4477" };
 
 const unsigned int overview_linechart_width = 1800;
 const unsigned int overview_linechart_wc_height = 450;
@@ -148,7 +149,7 @@ void generateCSS( ostringstream& oss ) {
   oss << "p.gentle {" << endl;
   oss << "  font-family: serif;" << endl;
   oss << "  font-size: 12px;" << endl;
-  oss << "  font-style: italic;" << endl;  
+  oss << "  font-style: italic;" << endl;
   oss << "  color: #444444;" << endl;
   oss << "}" << endl;
 
@@ -158,80 +159,80 @@ void generateCSS( ostringstream& oss ) {
 
   oss << "table.header th.caption {" << endl;
   oss << "  font-family: monospace;" << endl;
-  oss << "  font-size: 18px;" << endl;  
-  oss << "  font-weight: bold;" << endl;  
-  oss << "  text-align: left;" << endl;  
+  oss << "  font-size: 18px;" << endl;
+  oss << "  font-weight: bold;" << endl;
+  oss << "  text-align: left;" << endl;
   oss << "}" << endl;
 
   oss << "table.header td, table.header th {" << endl;
   oss << "  font-family: monospace;" << endl;
-  oss << "  font-size: 12px;" << endl;  
-  oss << "  font-weight: normal;" << endl;  
-  oss << "  text-align: left;" << endl;    
-  oss << "}" << endl;     
+  oss << "  font-size: 12px;" << endl;
+  oss << "  font-weight: normal;" << endl;
+  oss << "  text-align: left;" << endl;
+  oss << "}" << endl;
 
   oss << "table.header th {" << endl;
-  oss << "  font-weight: bold;" << endl;  
-  oss << "}" << endl;  
+  oss << "  font-weight: bold;" << endl;
+  oss << "}" << endl;
 
   oss << "table.header td {" << endl;
-  oss << "  padding-right: 10px;" << endl;   
-  oss << "}" << endl;   
+  oss << "  padding-right: 10px;" << endl;
+  oss << "}" << endl;
 
   oss << "table.heatmap {" << endl;
   oss << "  background-color : " << color_background_table_header << ";" << endl;
   oss << "  border: 0px solid " << color_table_border << ";" << endl;
-  oss << "  border-collapse: collapse;" << endl;  
-  oss << "  margin-top: 20px;" << endl;  
-  oss << "}" << endl;  
+  oss << "  border-collapse: collapse;" << endl;
+  oss << "  margin-top: 20px;" << endl;
+  oss << "}" << endl;
 
   oss << "table.heatmap caption {" << endl;
   oss << "  font-family: sans;" << endl;
-  oss << "  font-size: 14px;" << endl;  
-  oss << "  font-weight: bold;" << endl;  
-  oss << "  text-align: left;" << endl;  
-  oss << "}" << endl;    
+  oss << "  font-size: 14px;" << endl;
+  oss << "  font-weight: bold;" << endl;
+  oss << "  text-align: left;" << endl;
+  oss << "}" << endl;
 
   oss << "table.heatmap td, table.heatmap th {" << endl;
   oss << "  border: 1px solid " << color_background_dark << ";" << endl;
   oss << "  border-collapse: collapse;" << endl;
   oss << "  font-family: sans;" << endl;
-  oss << "  font-size: 12px;" << endl;  
-  oss << "  font-weight: normal;" << endl;  
-  oss << "  text-align: left;" << endl;   
-  oss << "  padding: 2px;" << endl;  
-  oss << "  padding-right: 4px;" << endl;  
-  oss << "}" << endl;     
+  oss << "  font-size: 12px;" << endl;
+  oss << "  font-weight: normal;" << endl;
+  oss << "  text-align: left;" << endl;
+  oss << "  padding: 2px;" << endl;
+  oss << "  padding-right: 4px;" << endl;
+  oss << "}" << endl;
 
   oss << "table.heatmap th {" << endl;
-  oss << "  font-weight: bold;" << endl;  
-  oss << "  padding-right: 8px;" << endl;  
-  oss << "}" << endl;     
+  oss << "  font-weight: bold;" << endl;
+  oss << "  padding-right: 8px;" << endl;
+  oss << "}" << endl;
 
   oss << "table.usertable {" << endl;
   oss << "  border: 1px solid " << color_background_dark << ";" << endl;
   oss << "  border-collapse: collapse;" << endl;
-  oss << "}" << endl;  
+  oss << "}" << endl;
 
   oss << "table.usertable th, table.usertable td {" << endl;
   oss << "  text-align: left;" << endl;
   oss << "  border: 1px solid " << color_table_border << ";" << endl;
-  oss << "  background-color:" << color_background_table_cell << ";" << endl; 
-  oss << "  border-collapse: collapse;" << endl; 
-  oss << "  padding: 3px;" << endl;   
+  oss << "  background-color:" << color_background_table_cell << ";" << endl;
+  oss << "  border-collapse: collapse;" << endl;
+  oss << "  padding: 3px;" << endl;
   oss << "}" << endl;
 
   oss << "table.usertable th {" << endl;
-  oss << "  background-color:" << color_background_table_header << ";" << endl; 
+  oss << "  background-color:" << color_background_table_header << ";" << endl;
   oss << "}" << endl;
 
   oss << "table.usertable td.good {" << endl;
-  oss << "  background-color:" << color_background_table_good << ";" << endl; 
-  oss << "}" << endl;      
+  oss << "  background-color:" << color_background_table_good << ";" << endl;
+  oss << "}" << endl;
 
   oss << "table.usertable td.bad {" << endl;
-  oss << "  background-color:" << color_background_table_bad << ";" << endl; 
-  oss << "}" << endl;        
+  oss << "  background-color:" << color_background_table_bad << ";" << endl;
+  oss << "}" << endl;
 
   oss << ".tab {" << endl;
   oss << "  overflow: hidden;" << endl;
@@ -276,7 +277,7 @@ void generateCSS( ostringstream& oss ) {
 /**
  * Generate JavScript options common for Pie (donut) charts.
  */
-void generatePieChartOptions( ostringstream& oss, const string& name, const string& title, unsigned width, 
+void generatePieChartOptions( ostringstream& oss, const string& name, const string& title, unsigned width,
                               unsigned height, const std::string colors, unsigned indent ) {
   oss << string(indent,' ')   << "var " << name << "= {" << endl;
   oss << string(indent+2,' ') << "title: '" << title << "'," << endl;
@@ -296,44 +297,44 @@ void generatePieChartOptions( ostringstream& oss, const string& name, const stri
  */
 void generateSummaryMinMaxChart( ostringstream& oss ) {
   oss << "  var minMax_data = google.visualization.arrayToDataTable([" << endl;
-  oss << "    ['DNS', " 
-      << globalstats.wait_class_stats.namelookup.min << ", " 
-      << globalstats.wait_class_stats.namelookup.getMean() << ", " 
-      << globalstats.wait_class_stats.namelookup.getMean() + globalstats.wait_class_stats.namelookup.getSigma() << ", " 
-      << globalstats.wait_class_stats.namelookup.max 
+  oss << "    ['DNS', "
+      << globalstats.wait_class_stats.namelookup.min << ", "
+      << globalstats.wait_class_stats.namelookup.getMean() << ", "
+      << globalstats.wait_class_stats.namelookup.getMean() + globalstats.wait_class_stats.namelookup.getSigma() << ", "
+      << globalstats.wait_class_stats.namelookup.max
       << " ]," << endl;
-  oss << "    ['TCP', " 
-      << globalstats.wait_class_stats.connect.min << ", " 
-      << globalstats.wait_class_stats.connect.getMean() << ", " 
-      << globalstats.wait_class_stats.connect.getMean() + globalstats.wait_class_stats.connect.getSigma() << ", " 
-      << globalstats.wait_class_stats.connect.max 
+  oss << "    ['TCP', "
+      << globalstats.wait_class_stats.connect.min << ", "
+      << globalstats.wait_class_stats.connect.getMean() << ", "
+      << globalstats.wait_class_stats.connect.getMean() + globalstats.wait_class_stats.connect.getSigma() << ", "
+      << globalstats.wait_class_stats.connect.max
       << " ]," << endl;
-  oss << "    ['TLS', " 
-      << globalstats.wait_class_stats.appconnect.min << ", " 
-      << globalstats.wait_class_stats.appconnect.getMean() << ", " 
-      << globalstats.wait_class_stats.appconnect.getMean() + globalstats.wait_class_stats.appconnect.getSigma() << ", " 
-      << globalstats.wait_class_stats.appconnect.max 
+  oss << "    ['TLS', "
+      << globalstats.wait_class_stats.appconnect.min << ", "
+      << globalstats.wait_class_stats.appconnect.getMean() << ", "
+      << globalstats.wait_class_stats.appconnect.getMean() + globalstats.wait_class_stats.appconnect.getSigma() << ", "
+      << globalstats.wait_class_stats.appconnect.max
       << " ]," << endl;
-  oss << "    ['REQ', " 
-      << globalstats.wait_class_stats.pretransfer.min << ", " 
-      << globalstats.wait_class_stats.pretransfer.getMean() << ", " 
-      << globalstats.wait_class_stats.pretransfer.getMean() + globalstats.wait_class_stats.pretransfer.getSigma() << ", " 
-      << globalstats.wait_class_stats.pretransfer.max 
+  oss << "    ['REQ', "
+      << globalstats.wait_class_stats.pretransfer.min << ", "
+      << globalstats.wait_class_stats.pretransfer.getMean() << ", "
+      << globalstats.wait_class_stats.pretransfer.getMean() + globalstats.wait_class_stats.pretransfer.getSigma() << ", "
+      << globalstats.wait_class_stats.pretransfer.max
       << " ]," << endl;
-  oss << "    ['RSP', " 
-      << globalstats.wait_class_stats.starttransfer.min << ", " 
-      << globalstats.wait_class_stats.starttransfer.getMean() << ", " 
-      << globalstats.wait_class_stats.starttransfer.getMean() + globalstats.wait_class_stats.starttransfer.getSigma() << ", " 
-      << globalstats.wait_class_stats.starttransfer.max 
+  oss << "    ['RSP', "
+      << globalstats.wait_class_stats.starttransfer.min << ", "
+      << globalstats.wait_class_stats.starttransfer.getMean() << ", "
+      << globalstats.wait_class_stats.starttransfer.getMean() + globalstats.wait_class_stats.starttransfer.getSigma() << ", "
+      << globalstats.wait_class_stats.starttransfer.max
       << " ]," << endl;
-  oss << "    ['DAT', " 
-      << globalstats.wait_class_stats.endtransfer.min << ", " 
-      << globalstats.wait_class_stats.endtransfer.getMean() << ", " 
-      << globalstats.wait_class_stats.endtransfer.getMean() + globalstats.wait_class_stats.endtransfer.getSigma() << ", " 
-      << globalstats.wait_class_stats.endtransfer.max 
-      << " ]," << endl;                              
+  oss << "    ['DAT', "
+      << globalstats.wait_class_stats.endtransfer.min << ", "
+      << globalstats.wait_class_stats.endtransfer.getMean() << ", "
+      << globalstats.wait_class_stats.endtransfer.getMean() + globalstats.wait_class_stats.endtransfer.getSigma() << ", "
+      << globalstats.wait_class_stats.endtransfer.max
+      << " ]," << endl;
   oss << "    ], true );" << endl;
-  
+
   unsigned int indent = 2;
   oss << string(indent,' ')   << "var minMax_options= {" << endl;
   oss << string(indent+2,' ') << "title: 'Per wait class min-max, mean - mean + standard deviation'," << endl;
@@ -347,15 +348,15 @@ void generateSummaryMinMaxChart( ostringstream& oss ) {
   oss << string(indent+2,' ') << "backgroundColor: { fill:'transparent' }," << endl;
   oss << string(indent+2,' ') << "hAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'Wait class'," << endl;
-  oss << string(indent+2,' ')   << "}," << endl;  
+  oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent+2,' ') << "vAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'response time (s)'," << endl;
   oss << string(indent+4,' ') << "scaleType: 'log'," << endl;
   oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent,' ')   << "};" << endl;
 
-  oss << "  var minMax_chart = new google.visualization.CandlestickChart(document.getElementById('minMax'));" << endl;  
-  oss << "  minMax_chart.draw( minMax_data, minMax_options );" << endl;  
+  oss << "  var minMax_chart = new google.visualization.CandlestickChart(document.getElementById('minMax'));" << endl;
+  oss << "  minMax_chart.draw( minMax_data, minMax_options );" << endl;
 }
 
 /**
@@ -364,16 +365,16 @@ void generateSummaryMinMaxChart( ostringstream& oss ) {
 void generateSummaryQoSPieChart( ostringstream& oss ) {
   oss << "  var probePie_data = google.visualization.arrayToDataTable([" << endl;
   oss << "  ['Probe counts','count']," << endl;
-  oss << "    ['" << "Good " << globalstats.timed_probes - globalstats.items_slow 
+  oss << "    ['" << "Good " << globalstats.timed_probes - globalstats.items_slow
       << "', " << globalstats.timed_probes - globalstats.items_slow << "]," << endl;
   oss << "    ['" << "Slow " << globalstats.items_slow << "', " << globalstats.items_slow << "]," << endl;
   oss << "    ['" << "Probe error " << curl_error_list.size() << "', " << curl_error_list.size() << "]," << endl;
   oss << "    ['" << "HTTP error " << http_error_list.size() << "', " << http_error_list.size() << "]," << endl;
   oss << "    ]);" << endl;
-  generatePieChartOptions( oss, "probePie_options", "Quality of service", overview_piechart_width, 
+  generatePieChartOptions( oss, "probePie_options", "Quality of service", overview_piechart_width,
                            overview_piechart_height, probe_error_colors, 2 );
-  oss << "  var probePie_chart = new google.visualization.PieChart(document.getElementById('probePie'));" << endl;  
-  oss << "  probePie_chart.draw( probePie_data, probePie_options );" << endl;  
+  oss << "  var probePie_chart = new google.visualization.PieChart(document.getElementById('probePie'));" << endl;
+  oss << "  probePie_chart.draw( probePie_data, probePie_options );" << endl;
 }
 
 /**
@@ -382,23 +383,23 @@ void generateSummaryQoSPieChart( ostringstream& oss ) {
 void generateSummaryWCAveragePieChart( ostringstream& oss ) {
   oss << "  var waitClassPie_data = google.visualization.arrayToDataTable([" << endl;
   oss << "  ['Wait class','mean']," << endl;
-  oss << "    ['" << "DNS " << num(globalstats.wait_class_stats.namelookup.getMean()*1000.0,2) 
+  oss << "    ['" << "DNS " << num(globalstats.wait_class_stats.namelookup.getMean()*1000.0,2)
       << "ms', " << globalstats.wait_class_stats.namelookup.getMean()*1000.0 << "]," << endl;
-  oss << "    ['" << "TCP " << num(globalstats.wait_class_stats.connect.getMean()*1000.0,2) 
+  oss << "    ['" << "TCP " << num(globalstats.wait_class_stats.connect.getMean()*1000.0,2)
       << "ms', " << globalstats.wait_class_stats.connect.getMean()*1000.0 << "]," << endl;
-  oss << "    ['" << "TLS " << num(globalstats.wait_class_stats.appconnect.getMean()*1000.0,2) 
+  oss << "    ['" << "TLS " << num(globalstats.wait_class_stats.appconnect.getMean()*1000.0,2)
       << "ms', " << globalstats.wait_class_stats.appconnect.getMean()*1000.0 << "]," << endl;
-  oss << "    ['" << "REQ " << num(globalstats.wait_class_stats.pretransfer.getMean()*1000.0,2) 
+  oss << "    ['" << "REQ " << num(globalstats.wait_class_stats.pretransfer.getMean()*1000.0,2)
       << "ms', " << globalstats.wait_class_stats.pretransfer.getMean()*1000.0 << "]," << endl;
-  oss << "    ['" << "RSP " << num(globalstats.wait_class_stats.starttransfer.getMean()*1000.0,2) 
+  oss << "    ['" << "RSP " << num(globalstats.wait_class_stats.starttransfer.getMean()*1000.0,2)
       << "ms', " << globalstats.wait_class_stats.starttransfer.getMean()*1000.0 << "]," << endl;
-  oss << "    ['" << "DAT " << num(globalstats.wait_class_stats.endtransfer.getMean()*1000.0,2) 
+  oss << "    ['" << "DAT " << num(globalstats.wait_class_stats.endtransfer.getMean()*1000.0,2)
       << "ms', " << globalstats.wait_class_stats.endtransfer.getMean()*1000.0 << "]" << endl;
   oss << "    ]);" << endl;
-  generatePieChartOptions( oss, "waitClassPie_options", "Wait class mean all probes (ms)", overview_piechart_width, 
+  generatePieChartOptions( oss, "waitClassPie_options", "Wait class mean all probes (ms)", overview_piechart_width,
                            overview_piechart_height, wait_class_colors, 2 );
-  oss << "  var waitClassPie_chart = new google.visualization.PieChart(document.getElementById('waitClassPie'));" << endl;  
-  oss << "  waitClassPie_chart.draw( waitClassPie_data, waitClassPie_options );" << endl;  
+  oss << "  var waitClassPie_chart = new google.visualization.PieChart(document.getElementById('waitClassPie'));" << endl;
+  oss << "  waitClassPie_chart.draw( waitClassPie_data, waitClassPie_options );" << endl;
 }
 
 /**
@@ -416,8 +417,8 @@ void generateSummaryWCSlowTotalPieChart( ostringstream& oss ) {
   oss << "    ]);" << endl;
   generatePieChartOptions( oss, "waitClassSlowPie_options", "Wait class total slow probes", overview_piechart_width,
                            overview_piechart_height, wait_class_colors, 2 );
-  oss << "  var waitClassSlowPie_chart = new google.visualization.PieChart(document.getElementById('waitClassSlowPie'));" << endl;  
-  oss << "  waitClassSlowPie_chart.draw( waitClassSlowPie_data, waitClassSlowPie_options );" << endl;  
+  oss << "  var waitClassSlowPie_chart = new google.visualization.PieChart(document.getElementById('waitClassSlowPie'));" << endl;
+  oss << "  waitClassSlowPie_chart.draw( waitClassSlowPie_data, waitClassSlowPie_options );" << endl;
 }
 
 
@@ -428,11 +429,11 @@ void generateHistoryQosChart( ostringstream& oss ) {
   oss << "  var qosTrail_data = google.visualization.arrayToDataTable([" << endl;
   oss << "  ['date','Good', 'Slow', 'Probe error', 'HTTP error' ]," << endl;
   for ( const auto &d : qos_by_date ) {
-    //oss << "    ['" << d.first.asString() 
+    //oss << "    ['" << d.first.asString()
     oss << "    [ new Date(" << d.first.year << ", " << d.first.month-1 << ", " <<  d.first.day << ").toDateString(),"
-        << total_date_map[d.first].probe.items << ", " 
-        << d.second.slow << ", " 
-        << d.second.curl_errors << ", " 
+        << total_date_map[d.first].probe.items << ", "
+        << d.second.slow << ", "
+        << d.second.curl_errors << ", "
         << d.second.http_errors <<  "]," << endl;
   }
   oss << "    ]);" << endl;
@@ -456,15 +457,15 @@ void generateHistoryQosChart( ostringstream& oss ) {
   oss << string(indent+4,' ') << "title: 'date'," << endl;
   oss << string(indent+4,' ') << "format: 'EEE MMM d'," << endl;
   oss << string(indent+4,' ') << "gridlines: { count: 3 }," << endl;
-  oss << string(indent+2,' ') << "}," << endl;  
+  oss << string(indent+2,' ') << "}," << endl;
   oss << string(indent+2,' ') << "vAxes: {" << endl;
   oss << string(indent+4,' ') << "0: { title: 'QoS' }," << endl;
   oss << string(indent+4,' ') << "1: { title: 'response time (s)' }," << endl;
   oss << string(indent+2,' ') << "}," << endl;
   oss << string(indent,' ')   << "};" << endl;
 
-  oss << "  var qosTrail_chart = new google.visualization.ComboChart(document.getElementById('qosTrail'));" << endl;  
-  oss << "  qosTrail_chart.draw( qosTrail_data, qosTrail_options );" << endl;  
+  oss << "  var qosTrail_chart = new google.visualization.ComboChart(document.getElementById('qosTrail'));" << endl;
+  oss << "  qosTrail_chart.draw( qosTrail_data, qosTrail_options );" << endl;
 }
 
 /**
@@ -472,9 +473,9 @@ void generateHistoryQosChart( ostringstream& oss ) {
  */
 void generateRecentChart( ostringstream& oss ) {
   oss << "  var recentTrail_data = google.visualization.arrayToDataTable([" << endl;
-  oss << "    ['datetime','DNS', 'TCP', 'TLS', 'REQ', 'RSP', 'DAT' ]," << endl;  
+  oss << "    ['datetime','DNS', 'TCP', 'TLS', 'REQ', 'RSP', 'DAT' ]," << endl;
   for ( const auto &p : recent_probes ) {
-    oss << "    [ new Date( " << p.datetime.year << "," << p.datetime.month-1 << "," << p.datetime.day 
+    oss << "    [ new Date( " << p.datetime.year << "," << p.datetime.month-1 << "," << p.datetime.day
         << "," << p.datetime.hour << "," << p.datetime.minute << "," << p.datetime.second << "), ";
     oss << p.getWaitClassDuration( wcDNS ) << ", ";
     oss << p.getWaitClassDuration( wcTCPHandshake ) << ",";
@@ -500,45 +501,45 @@ void generateRecentChart( ostringstream& oss ) {
   //oss << string(indent+2,' ') << "showTextEvery: " << recent_probes.size() / 6 << "," << endl;
   oss << string(indent+2,' ') << "hAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'datetime'," << endl;
-  oss << string(indent+2,' ')   << "}," << endl;  
+  oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent+2,' ') << "vAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'seconds'," << endl;
   oss << string(indent+4,' ') << "format: '##.###'," << endl;
   oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent,' ')   << "};" << endl;
 
-  oss << "  var recentTrail_chart = new google.visualization.AreaChart(document.getElementById('recentTrail'));" << endl;  
-  oss << "  recentTrail_chart.draw( recentTrail_data, recentTrail_options );" << endl;  
+  oss << "  var recentTrail_chart = new google.visualization.AreaChart(document.getElementById('recentTrail'));" << endl;
+  oss << "  recentTrail_chart.draw( recentTrail_data, recentTrail_options );" << endl;
 }
 
 /**
  * Generate Google chart JavaScript for the Error trail chart.
  */
-void generateErrorTrail( ostringstream& oss ) {  
+void generateErrorTrail( ostringstream& oss ) {
   oss << "  var errorTrail_data = new google.visualization.DataTable();" << endl;
   oss << "  errorTrail_data.addColumn('datetime', 'Date');" << endl;
   oss << "  errorTrail_data.addColumn('number', 'error code');" << endl;
   oss << "  errorTrail_data.addColumn({type:'string', role:'style'});" << endl;
   oss << "  errorTrail_data.addColumn({type:'string', role:'tooltip'});" << endl;
-  oss << "  errorTrail_data.addRows([" << endl;   
+  oss << "  errorTrail_data.addRows([" << endl;
   for ( const auto &p : curl_error_list ) {
     oss << "    [ ";
-    oss << "new Date( " << p.datetime.year << "," << p.datetime.month-1 << "," << p.datetime.day << "," 
+    oss << "new Date( " << p.datetime.year << "," << p.datetime.month-1 << "," << p.datetime.day << ","
         << p.datetime.hour << "," << p.datetime.minute << "," << p.datetime.second << "), ";
-    oss << error_code_index[p.curl_error] << ", ";    
-    oss <<  "'point { fill-color: " << error_index_colors[error_code_index[p.curl_error]] << ";}', ";   
-    oss <<  "'" << p.datetime.asString() << ", " << curlError2String( p.curl_error ) << "', ";   
-    oss << "]," << endl;    
+    oss << error_code_index[p.curl_error] << ", ";
+    oss <<  "'point { fill-color: " << error_index_colors[error_code_index[p.curl_error]] << ";}', ";
+    oss <<  "'" << p.datetime.asString() << ", " << curlError2String( p.curl_error ) << "', ";
+    oss << "]," << endl;
   }
   for ( const auto &p : http_error_list ) {
     oss << "  [ ";
-    oss << "new Date( " << p.datetime.year << "," << p.datetime.month-1 << "," << p.datetime.day << "," 
+    oss << "new Date( " << p.datetime.year << "," << p.datetime.month-1 << "," << p.datetime.day << ","
         << p.datetime.hour << "," << p.datetime.minute << "," << p.datetime.second << "), ";
-    oss << error_code_index[p.http_code] << ", ";   
-    oss <<  "'point { fill-color: " << error_index_colors[error_code_index[p.http_code]] << ";}', ";  
-    oss << "'" << p.datetime.asString() << ", " << HTTPCode2String( p.http_code ) << "', ";   
-    oss << "]," << endl;       
-  }  
+    oss << error_code_index[p.http_code] << ", ";
+    oss <<  "'point { fill-color: " << error_index_colors[error_code_index[p.http_code]] << ";}', ";
+    oss << "'" << p.datetime.asString() << ", " << HTTPCode2String( p.http_code ) << "', ";
+    oss << "]," << endl;
+  }
   oss << "    ]);" << endl;
 
   unsigned int indent = 2;
@@ -555,7 +556,7 @@ void generateErrorTrail( ostringstream& oss ) {
   oss << string(indent+2,' ') << "hAxis: {" << endl;
   oss << string(indent+4,' ') << "  title: 'datetime'," << endl;
   oss << string(indent+2,' ') << "}," << endl;
- 
+
   oss << string(indent+2,' ') << "vAxis: {" << endl;
   oss << string(indent+2,' ') << "  textStyle: { color : '" << color_background_tab << "' }," << endl;
   oss << string(indent+2,' ') << "  minValue: -1," << endl;
@@ -566,8 +567,8 @@ void generateErrorTrail( ostringstream& oss ) {
 
   oss << string(indent,' ')   << "};" << endl;
 
-  oss << "  var errorTrail_chart = new google.visualization.ScatterChart(document.getElementById('errorTrail'));" << endl;  
-  oss << "  errorTrail_chart.draw( errorTrail_data, errorTrail_options );" << endl;  
+  oss << "  var errorTrail_chart = new google.visualization.ScatterChart(document.getElementById('errorTrail'));" << endl;
+  oss << "  errorTrail_chart.draw( errorTrail_data, errorTrail_options );" << endl;
 }
 
 /**
@@ -605,7 +606,7 @@ void generateHistoryWCChart( ostringstream& oss ) {
   oss << string(indent+4,' ') << "5: {type: 'bars', color: '" + color_dat + "',curveType: 'function', dataOpacity: 0.8}," << endl;
   oss << string(indent+4,' ') << "6: {type: 'line', color: '" + color_mean + "',curveType: 'function', opacity: 0.8}," << endl;
   oss << string(indent+4,' ') << "7: {type: 'line', color: '" + color_stddev + "',curveType: 'function', opacity: 0.8}," << endl;
-  oss << string(indent+2,' ') << "}," << endl;   
+  oss << string(indent+2,' ') << "}," << endl;
   oss << string(indent+2,' ') << "lineWidth: 2," << endl;
   oss << string(indent+2,' ') << "fontSize: 10," << endl;
   oss << string(indent+2,' ') << "legend: { position: 'top' }," << endl;
@@ -613,16 +614,16 @@ void generateHistoryWCChart( ostringstream& oss ) {
   oss << string(indent+2,' ') << "showTextEvery: " << total_date_map.size() / 6 << "," << endl;
   oss << string(indent+2,' ') << "hAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'date'," << endl;
-  oss << string(indent+2,' ')   << "}," << endl;  
+  oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent+2,' ') << "vAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'seconds'," << endl;
   oss << string(indent+4,' ') << "format: '##.###'," << endl;
   oss << string(indent+2,' ')   << "}," << endl;
-  oss << string(indent,' ')   << "};" << endl;  
+  oss << string(indent,' ')   << "};" << endl;
 
 
-  oss << "  var dateWaitClassTrail_chart = new google.visualization.ColumnChart(document.getElementById('dateWaitClassTrail'));" << endl;  
-  oss << "  dateWaitClassTrail_chart.draw( dateWaitClassTrail_data, dateWaitClassTrail_options );" << endl;  
+  oss << "  var dateWaitClassTrail_chart = new google.visualization.ColumnChart(document.getElementById('dateWaitClassTrail'));" << endl;
+  oss << "  dateWaitClassTrail_chart.draw( dateWaitClassTrail_data, dateWaitClassTrail_options );" << endl;
 }
 
 /**
@@ -657,15 +658,15 @@ void generateAverageDayChart( ostringstream& oss ) {
   oss << string(indent+2,' ') << "hAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'time of day'," << endl;
   oss << string(indent+4,' ') << "showTextEvery: " << total_day_map.size() / 12 << "," << endl;
-  oss << string(indent+2,' ')   << "}," << endl;  
+  oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent+2,' ') << "vAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'seconds'," << endl;
   oss << string(indent+4,' ') << "format: '##.###'," << endl;
   oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent,' ')   << "};" << endl;
 
-  oss << "  var t24hmap_chart = new google.visualization.AreaChart(document.getElementById('dailyBreakdown'));" << endl;  
-  oss << "  t24hmap_chart.draw( t24hmap_data, t24hmap_options );" << endl;  
+  oss << "  var t24hmap_chart = new google.visualization.AreaChart(document.getElementById('dailyBreakdown'));" << endl;
+  oss << "  t24hmap_chart.draw( t24hmap_data, t24hmap_options );" << endl;
 }
 
 /**
@@ -694,7 +695,7 @@ void generateQtyStatsHistogram( ostringstream& oss, const QtyStats &stats, const
   oss << string(indent+2,' ') << "legend: { position: 'none' }," << endl;
   oss << string(indent+2,' ') << "hAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'bucket'," << endl;
-  oss << string(indent+2,' ')   << "}," << endl;  
+  oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent+2,' ') << "vAxis: {" << endl;
   oss << string(indent+4,' ') << "title: 'probes'," << endl;
   oss << string(indent+4,' ') << "format: '##.###'," << endl;
@@ -702,8 +703,8 @@ void generateQtyStatsHistogram( ostringstream& oss, const QtyStats &stats, const
   oss << string(indent+2,' ')   << "}," << endl;
   oss << string(indent,' ')   << "};" << endl;
 
-  oss << "  var " << id << "_chart = new google.visualization.ColumnChart(document.getElementById('" << id << "'));" << endl;  
-  oss << "  " << id << "_chart.draw( " << id << "_data, " << id << "_options );" << endl;   
+  oss << "  var " << id << "_chart = new google.visualization.ColumnChart(document.getElementById('" << id << "'));" << endl;
+  oss << "  " << id << "_chart.draw( " << id << "_data, " << id << "_options );" << endl;
 }
 
 /**
@@ -723,7 +724,7 @@ void generateTotalHistogram( ostringstream& oss ) {
  * Generate the HTML header.
  */
 void generateHeader( ostringstream& oss ) {
-  oss << "<!Doctype html>" << endl;  
+  oss << "<!Doctype html>" << endl;
   oss << "<html lang=en>" << endl;
   oss << "<head>" << endl;
   oss << "<meta name=\"Author\" content=\"curlstats\">" << endl;
@@ -731,8 +732,8 @@ void generateHeader( ostringstream& oss ) {
   oss << "<title>curlstats " << comments.client_fqdn << " " << comments.request << " " << comments.url << "</title>" << endl;
   oss << "<script src=\"https://www.gstatic.com/charts/loader.js\"></script>" << endl;
 
-  oss << "<script>" << endl;  
-  
+  oss << "<script>" << endl;
+
   oss << "function drawCharts() {" << endl;
 
 
@@ -761,14 +762,14 @@ void generateHeader( ostringstream& oss ) {
   oss << "}" << endl;
 
   oss << "google.charts.load('current', {'packages':['corechart', 'timeline']});" << endl;
-  oss << "google.charts.setOnLoadCallback(drawCharts);" << endl;    
+  oss << "google.charts.setOnLoadCallback(drawCharts);" << endl;
 
   generateTabbingJavaScript( oss );
 
   oss << "</script>" << endl;
   generateCSS( oss );
 
-  oss << "</head>" << endl;  
+  oss << "</head>" << endl;
 }
 
 /**
@@ -788,7 +789,7 @@ void generateHistory( ostringstream& oss ) {
   oss << "</tr>" << endl;
   oss << "</table>" << endl;
 
-  oss << "</div>" << endl;  
+  oss << "</div>" << endl;
 }
 
 /**
@@ -808,7 +809,7 @@ void generateSummary( ostringstream& oss ) {
   oss << "<tr><th>slow probes</th><td>" << globalstats.items_slow << "</td></tr>" << endl;
   oss << "<tr><th>probe errors</th><td>" << curl_error_list.size() << "</td></tr>" << endl;
   oss << "<tr><th>HTTP errors</th><td>" << http_error_list.size() << "</td></tr>" << endl;
-  size_t total_outside_qos = globalstats.items_slow + curl_error_list.size() + http_error_list.size();  
+  size_t total_outside_qos = globalstats.items_slow + curl_error_list.size() + http_error_list.size();
   oss << "<tr><th>QoS</th><td>" << num( (1.0-(double)total_outside_qos/(double)globalstats.total_probes)*100.0 ) << "%</td></tr>" << endl;
   oss << "<tr><th>mean response</th><td>" << num( globalstats.total_time / globalstats.timed_probes ) << "s</td></tr>" << endl;
   oss << "<tr><th>ideal response</th><td>" << num( globalstats.wait_class_stats.getIdealResponse() ) << "s</td></tr>" << endl;
@@ -820,20 +821,20 @@ void generateSummary( ostringstream& oss ) {
   oss << "</table>" << endl;
 
   oss << "</td><td>" << endl;
-  oss << "<div id=\"probePie\"></div>" << endl;    
+  oss << "<div id=\"probePie\"></div>" << endl;
   oss << "</td></tr>" << endl;
 
   oss << "<tr><td>" << endl;
   oss << "<div id=\"waitClassPie\"></div>" << endl;
   oss << "</td><td>" << endl;
-  oss << "<div id=\"waitClassSlowPie\"></div>" << endl;  
+  oss << "<div id=\"waitClassSlowPie\"></div>" << endl;
   oss << "</td></tr>" << endl;
   oss << "</table>" << endl;
 
   oss << "</td><td>" << endl;
   oss << "<div id=\"minMax\"></div>" << endl;
   oss << "</td></tr></table>" << endl;
-  
+
   oss << "</div>" << endl;
 }
 
@@ -850,19 +851,19 @@ void generateErrors( ostringstream& oss ) {
   oss << "<tr><th>Curl error</th><th>probes</th><th>percentage</th><th></th></tr>";
   for ( const auto &h : curl_error_map ) {
     const string td = "<td>";
-    oss << "<tr><td>" 
-        << curlError2String( h.first ) 
-        << "</td><td>" 
-        << h.second 
+    oss << "<tr><td>"
+        << curlError2String( h.first )
+        << "</td><td>"
+        << h.second
         << "</td><td>"
         << num( (double)h.second/globalstats.total_probes*100.0 );
-    if ( h.first > 0 ) 
+    if ( h.first > 0 )
       oss << "</td><td style=\"background-color: " << error_index_colors[error_code_index[h.first]]<< "\">&nbsp;</td></tr>";
     else
       oss << "</td><td>&nbsp;</td></tr>";
     oss << endl;
   }
-  oss << "</table>" << endl;  
+  oss << "</table>" << endl;
   oss << "</td>" << endl;
 
   oss << "<td style=\"vertical-align: top;\">" << endl;
@@ -870,13 +871,13 @@ void generateErrors( ostringstream& oss ) {
   oss << "<tr><th>HTTP code</th><th>probes</th><th>percentage</th><th></th></tr>";
   for ( const auto &h : http_code_map ) {
     const string td = "<td>";
-    oss << "<tr><td>" 
-        << HTTPCode2String( h.first ) 
+    oss << "<tr><td>"
+        << HTTPCode2String( h.first )
         << "</td><td>"
-        << h.second 
+        << h.second
         << "</td><td>"
         << num( (double)h.second/globalstats.total_probes*100.0 );
-    if ( h.first > 200 ) 
+    if ( h.first > 200 )
       oss << "</td><td style=\"background-color: " << error_index_colors[error_code_index[h.first]]<< "\">&nbsp;</td></tr>";
     else
       oss << "</td><td>&nbsp;</td></tr>";
@@ -904,14 +905,14 @@ void generateErrors( ostringstream& oss ) {
  */
 void generateAverageDay( ostringstream& oss ) {
   oss << "<div id=\"Average_day\" class=\"tabcontent\">" << endl;
-  oss << "<p class=\"gentle\">Mean value over " << options.day_bucket 
+  oss << "<p class=\"gentle\">Mean value over " << options.day_bucket
       << " minute intervals, the last interval covering 23:" << 60 - options.day_bucket << "-00:00.</p>" << endl;
   oss << "<table>" << endl;
   oss << "<tr>" << endl;
   oss << "<td><div id=\"dailyBreakdown\"></div></td>" << endl;
   oss << "</tr>" << endl;
   oss << "</table>" << endl;
-  oss << "</div>" << endl;  
+  oss << "</div>" << endl;
 }
 
 /**
@@ -929,10 +930,10 @@ void generateHistograms( ostringstream& oss ) {
   oss << "<td><div id=\"reqHistogram\"></div></td>" << endl;
   oss << "<td><div id=\"rspHistogram\"></div></td>" << endl;
   oss << "<td colspan=\"2\"><div id=\"datHistogram\"></div></td>" << endl;
-  
+
   oss << "</tr>" << endl;
   oss << "</table>" << endl;
-  oss << "</div>" << endl;    
+  oss << "</div>" << endl;
 }
 
 /**
@@ -953,7 +954,7 @@ void generateOrigin( ostringstream& oss ) {
   oss << "</td>" << endl;
   oss << "</tr>" << endl;
   oss << "</table>" << endl;
-  oss << "</div>" << endl;    
+  oss << "</div>" << endl;
 }
 
 /**
@@ -968,7 +969,7 @@ void generateRecent( ostringstream& oss ) {
 
   oss << "</tr>" << endl;
   oss << "</table>" << endl;
-  oss << "</div>" << endl;  
+  oss << "</div>" << endl;
 }
 
 /**
@@ -979,28 +980,28 @@ void generateRecent( ostringstream& oss ) {
  * @max The minimum value among those to be presented.
  */
 string colorGradient( double value, double cutoff, double min, double max ) {
-  RGB color_this = { 0, 0, 0 };  
+  RGB color_this = { 0, 0, 0 };
   if ( value < cutoff ) {
     double dr = color_warn.red - color_ok.red;
     double dg = color_warn.green - color_ok.green;
     double db = color_warn.blue - color_ok.blue;
     double ratio = value / (cutoff-min);
-    //cout << "value < cutoff " << ratio << " min=" << min << "max=" << max << " cutoff=" << cutoff << endl;    
-    color_this  = { color_ok.red + (int)(dr * ratio), 
-                    color_ok.green + (int)(dg * ratio), 
-                    color_ok.blue + (int)(db * ratio) };             
+    //cout << "value < cutoff " << ratio << " min=" << min << "max=" << max << " cutoff=" << cutoff << endl;
+    color_this  = { color_ok.red + (int)(dr * ratio),
+                    color_ok.green + (int)(dg * ratio),
+                    color_ok.blue + (int)(db * ratio) };
   } else {
     int dr = color_bad.red - color_warn.red;
     int dg = color_bad.green - color_warn.green;
     int db = color_bad.blue - color_warn.blue;
     double ratio = (value-cutoff) / (max-cutoff);
-    //cout << "value >= cutoff " << ratio << endl;    
-    color_this  = { color_warn.red + (int)(dr * ratio), 
-                    color_warn.green + (int)(dg * ratio), 
-                    color_warn.blue + (int)(db * ratio) };    
+    //cout << "value >= cutoff " << ratio << endl;
+    color_this  = { color_warn.red + (int)(dr * ratio),
+                    color_warn.green + (int)(dg * ratio),
+                    color_warn.blue + (int)(db * ratio) };
   }
   ostringstream oss;
-  oss << "#" << hex << setfill('0') << setw(2) <<  color_this.red << setw(2) 
+  oss << "#" << hex << setfill('0') << setw(2) <<  color_this.red << setw(2)
       << color_this.green << setw(2) << color_this.blue;
   return oss.str();
 }
@@ -1013,7 +1014,7 @@ void generateWeekmapResponse( ostringstream& oss ) {
       if ( hh.second.getMean() > maxval ) maxval = hh.second.getMean();
       if ( hh.second.getMean() < minval ) minval = hh.second.getMean();
     }
-  }  
+  }
   oss << "<table class=\"heatmap\">" << endl;
   oss << "<caption>Response time weekmap</caption>" << endl;
   list<TimeKey> timebuckets;
@@ -1034,28 +1035,28 @@ void generateWeekmapResponse( ostringstream& oss ) {
   oss << "<tr>" << minute_headers.str() << "</tr>" << endl;
 
   for ( const auto &wd : weekmap_qtystats ) {
-    oss << "<tr><th>" << dowStr( wd.first ) << "</th>" << endl;  
+    oss << "<tr><th>" << dowStr( wd.first ) << "</th>" << endl;
     for ( const auto &t : timebuckets ) {
       const auto i = wd.second.find( t );
       if ( i != wd.second.end() ) {
-        oss << "<td style=\"background-color: " 
+        oss << "<td style=\"background-color: "
             << colorGradient( (*i).second.getMean(), options.slow_threshold, minval, maxval ) << "\" ";
-        oss << "title=\"" << dowStr( wd.first ) << " " << t.asString() << " response time=" 
+        oss << "title=\"" << dowStr( wd.first ) << " " << t.asString() << " response time="
             << num( (*i).second.getMean() ) <<  "s\">&nbsp;</td>" << endl;
       } else {
         oss << "<td style=\"background-color: #888888\" ";
         oss << "title=\"no data\">&nbsp;</td>" << endl;
       }
     }
-    oss << "</tr>" << endl;  
+    oss << "</tr>" << endl;
   }
   oss << "</table>" << endl;
   oss << "<table class=\"heatmaplegend\">" << endl;
-  oss << "<tr><td>" << num(minval) << "s </td><td style=\"border: 1px solid black; background-color: " 
+  oss << "<tr><td>" << num(minval) << "s </td><td style=\"border: 1px solid black; background-color: "
       << colorGradient( minval, options.slow_threshold, minval, maxval ) << "\">&nbsp;</td>" << endl;
-  oss << "<td>" << num(maxval) << "s </td><td style=\"border: 1px solid black; background-color: " 
+  oss << "<td>" << num(maxval) << "s </td><td style=\"border: 1px solid black; background-color: "
       << colorGradient( maxval, options.slow_threshold, minval, maxval ) << "\">&nbsp;</td></tr>" << endl;
-  oss << "</table>" << endl;  
+  oss << "</table>" << endl;
 }
 
 void generateWeekmapQoS( ostringstream& oss ) {
@@ -1066,7 +1067,7 @@ void generateWeekmapQoS( ostringstream& oss ) {
       if ( 100.0 - hh.second.getQoS() > maxval ) maxval = 100.0 - hh.second.getQoS();
       if ( 100.0 - hh.second.getQoS() < minval ) minval = 100.0 - hh.second.getQoS();
     }
-  }  
+  }
   oss << "<table class=\"heatmap\">" << endl;
   oss << "<caption>QoS weekmap</caption>" << endl;
   list<TimeKey> timebuckets;
@@ -1078,7 +1079,7 @@ void generateWeekmapQoS( ostringstream& oss ) {
   for ( int i = 0; i < 24*60/options.weekmap_bucket; i++ ) {
     TimeKey tk( h, m );
     timebuckets.push_back( tk );
-    if ( m == 0 ) hour_headers << "<th colspan=\"" << 60 / options.weekmap_bucket << "\">" 
+    if ( m == 0 ) hour_headers << "<th colspan=\"" << 60 / options.weekmap_bucket << "\">"
       << setfill('0') << setw(2) << tk.hour << "h</th>" << endl;
     minute_headers << "<td>" << setfill('0') << setw(2) << tk.minute << "m</td>" << endl;
     m += options.weekmap_bucket;
@@ -1088,13 +1089,13 @@ void generateWeekmapQoS( ostringstream& oss ) {
   oss << "<tr>" << minute_headers.str() << "</tr>" << endl;
 
   for ( const auto &wp : weekmap_probestats ) {
-    oss << "<tr><th>" << dowStr( wp.first ) << "</th>" << endl;  
+    oss << "<tr><th>" << dowStr( wp.first ) << "</th>" << endl;
     for ( const auto &t : timebuckets ) {
       const auto i = wp.second.find( t );
       if ( i != wp.second.end() ) {
-        oss << "<td style=\"background-color: " 
+        oss << "<td style=\"background-color: "
             << colorGradient( 100.0 - (*i).second.getQoS(), qos_cutoff,  minval, maxval ) << "\" ";
-        oss << "title=\"" << dowStr( wp.first ) << " " 
+        oss << "title=\"" << dowStr( wp.first ) << " "
             << t.asString() << " QoS=" << num( (*i).second.getQoS(), 1 ) << "% "
             << num( (*i).second.getProbeErrorPct(),1  ) << "% probe errors "
             << num( (*i).second.getHTTPErrorPct(),1  ) << "% http errors "
@@ -1105,16 +1106,16 @@ void generateWeekmapQoS( ostringstream& oss ) {
         oss << "title=\"no data\">&nbsp;</td>" << endl;
       }
     }
-    oss << "</tr>" << endl;  
+    oss << "</tr>" << endl;
   }
   oss << "</table>" << endl;
   oss << "<table class=\"heatmaplegend\">" << endl;
-  oss << "<tr><td>" << num(100.0 - minval) 
-      << "% </td><td style=\"border: 1px solid black; background-color: " 
+  oss << "<tr><td>" << num(100.0 - minval)
+      << "% </td><td style=\"border: 1px solid black; background-color: "
       << colorGradient( minval, qos_cutoff,  minval, maxval ) << "\">&nbsp;</td>" << endl;
-  oss << "<td>" << num(100.0 - maxval) << "% </td><td style=\"border: 1px solid black; background-color: " 
+  oss << "<td>" << num(100.0 - maxval) << "% </td><td style=\"border: 1px solid black; background-color: "
       << colorGradient( maxval, qos_cutoff,  minval, maxval ) << "\">&nbsp;</td></tr>" << endl;
-  oss << "</table>" << endl;  
+  oss << "</table>" << endl;
 }
 
 void generateWeekmap( ostringstream& oss ) {
@@ -1122,7 +1123,7 @@ void generateWeekmap( ostringstream& oss ) {
   oss << "<div id=\"Weekmap\" class=\"tabcontent\">" << endl;
   generateWeekmapResponse( oss );
   generateWeekmapQoS( oss );
-  oss << "</div>" << endl;  
+  oss << "</div>" << endl;
 }
 
 std::string HTML::generate() const {
@@ -1139,7 +1140,7 @@ std::string HTML::generate() const {
       error_code_index[h.first] = index % error_index_colors.size();
       index++;
     }
-  }  
+  }
 
   ostringstream oss;
   generateHeader( oss );
@@ -1147,7 +1148,7 @@ std::string HTML::generate() const {
 
   oss << "<body>" << endl;
   oss << "<table class=\"header\">" << endl;
-  oss << "<tr><th colspan=\"8\" class=\"caption\">" << comments.request << " " 
+  oss << "<tr><th colspan=\"8\" class=\"caption\">" << comments.request << " "
       << comments.url << "</th></tr>" << endl;
   oss << "<tr>" << endl;
   oss << "<th>from</th><td>" << comments.client_fqdn << "&nbsp;(" << comments.client_ip << ")</td>" << endl;
@@ -1165,7 +1166,7 @@ std::string HTML::generate() const {
   oss << "<button class=\"tablinks\" onclick=\"openTab(event, 'Average_day')\">Average day</button>" << endl;
   oss << "<button class=\"tablinks\" onclick=\"openTab(event, 'Weekmap')\">Week map</button>" << endl;
   oss << "<button class=\"tablinks\" onclick=\"openTab(event, 'Histograms')\">Histograms</button>" << endl;
-  oss << "<button class=\"tablinks\" onclick=\"openTab(event, 'Errors')\">Errors</button>" << endl;  
+  oss << "<button class=\"tablinks\" onclick=\"openTab(event, 'Errors')\">Errors</button>" << endl;
   oss << "<button class=\"tablinks\" onclick=\"openTab(event, 'Origin')\">Origin</button>" << endl;
   oss << "<button class=\"tablinks\" onclick=\"openTab(event, 'Help')\">Help</button>" << endl;
   oss << "</div>" << endl;
