@@ -190,7 +190,7 @@ expect that and block either one of the two, leading the client to timeout and r
 the `-4` option of curl (specify a `ipv4` in the config file) to prevent ipv6 and ipv6 DNS queries altogether - even if the host OS supports ipv6.
 
 As DNS is essential to IT operation, DNS resolving should provide rock solid performance and stability. Infrastructure architects and administrators
-should override (better word: *design*) the Linux DNS timeout of 5 seconds - if DNS is not resonding withon 1 second, it is likely not going to respond in the remaining 4 seconds either. adding 4 second sof pointless latency.
+should design the Linux DNS timeout (default 5 seconds). If DNS is not responding within 1 second, it is likely not going to respond in the remaining 4 seconds either - adding 4 seconds of pointless latency.
 
 *The DNS wait class equates to DNS response time, which is the time the DNS server required to assemble the answer plus
 the network time before the response reached the client. In general, DNS resolution performance is so critical to IT
